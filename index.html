@@ -548,7 +548,13 @@ function buildCard(g,i){
 
 // Prestacao
 function buildDD(){renderDD([...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort());}
-function renderDD(names){document.getElementById('nameDD').innerHTML=names.map(n=>'<div class="name-opt" onclick="pickName(\''+n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\'">'+n+'</div>').join('');}
+function renderDD(names){
+  const dd=document.getElementById('nameDD');
+  dd.innerHTML=names.map(n=>'<div class="name-opt" data-name="'+n.replace(/"/g,'&quot;')+'">'+n+'</div>').join('');
+  dd.querySelectorAll('.name-opt').forEach(el=>{
+    el.addEventListener('click',()=>pickName(el.getAttribute('data-name')));
+  });
+}
 function onNameInput(){const q=document.getElementById('pcName').value.toLowerCase();renderDD([...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort().filter(n=>n.toLowerCase().includes(q)));document.getElementById('nameDD').classList.add('open');}
 function openDD(){buildDD();document.getElementById('nameDD').classList.add('open');}
 function pickName(n){document.getElementById('pcName').value=n;document.getElementById('nameDD').classList.remove('open');}
