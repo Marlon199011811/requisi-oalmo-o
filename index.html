@@ -378,14 +378,34 @@ async function loadData() {
   try {
     const r = await fetch(API);
     if (!r.ok) throw new Error('HTTP '+r.status);
-    allRows = parse(await r.json());
+    const json = await r.json();
+    allRows = parse(json);
     if (!allRows.length) throw new Error('Nenhum dado na planilha.');
+
+    // Sincroniza comprovantes salvos no servidor (prioridade sobre localStorage)
+    if (Array.isArray(json.comprovantes)) {
+      json.comprovantes.forEach(c => {
+        if (!c.nome || !c.situacao) return;
+        let dataISO = String(c.data || '');
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataISO)) {
+          const [d,m,y] = dataISO.split('/');
+          dataISO = `${y}-${m}-${d}`;
+        }
+        const fakeRow = { nome: String(c.nome).trim(), dataISO, situacao: String(c.situacao).trim() };
+        const ck = compKey(fakeRow);
+        if (!comps[ck] || (c.fileUrl && !comps[ck].fileUrl)) {
+          comps[ck] = { fileName: c.fileName, fileUrl: c.fileUrl||'', fileId: c.fileId||'', savedAt: c.savedAt||'' };
+        }
+      });
+      saveComps();
+    }
+
     filterToday();
   } catch(e) { showErr(e.message); setMain(''); }
 }
 
 function parse(data) {
-  const rows = Array.isArray(data)?data:(data.values||data.data||[]);
+  const rows = Array.isArray(data) ? data : (data.rows || data.values || data.data || []);
   return rows.map(r=>({
     carimbo: r['Carimbo de data/hora']||'',
     nome:    (r['Nome']||'').trim(),
