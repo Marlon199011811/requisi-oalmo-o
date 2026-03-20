@@ -16,6 +16,7 @@
     --wa: #25D366; --wa-bg: rgba(37,211,102,0.10); --wa-border: rgba(37,211,102,0.28);
     --indigo: #818cf8; --indigo-bg: rgba(99,102,241,0.10); --indigo-border: rgba(99,102,241,0.25);
     --amber: #fbbf24; --amber-bg: rgba(251,191,36,0.10); --amber-border: rgba(251,191,36,0.25);
+    --red: #f87171; --red-bg: rgba(248,113,113,0.10); --red-border: rgba(248,113,113,0.25);
     --text: #f0f2f8; --muted: #7a8099;
     --ghost-bg: transparent; --ghost-border: rgba(255,255,255,0.13); --ghost-text: #f0f2f8;
     --font: 'DM Sans', sans-serif; --mono: 'DM Mono', monospace;
@@ -28,6 +29,7 @@
     --wa: #128C7E; --wa-bg: rgba(18,140,126,0.08); --wa-border: rgba(18,140,126,0.25);
     --indigo: #4f46e5; --indigo-bg: rgba(79,70,229,0.08); --indigo-border: rgba(79,70,229,0.22);
     --amber: #d97706; --amber-bg: rgba(217,119,6,0.08); --amber-border: rgba(217,119,6,0.22);
+    --red: #dc2626; --red-bg: rgba(220,38,38,0.08); --red-border: rgba(220,38,38,0.22);
     --text: #111827; --muted: #6b7280;
     --ghost-bg: #ffffff; --ghost-border: rgba(0,0,0,0.13); --ghost-text: #111827;
     --shadow: 0 1px 4px rgba(0,0,0,0.07);
@@ -109,7 +111,10 @@
   .name-opt:hover { background: var(--accent-bg); color: var(--accent); }
 
   /* Registro PC */
-  .pc-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1rem; }
+  .pc-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1rem; transition: border-color 0.2s; }
+  .pc-card.status-drive  { border-color: var(--accent-border); }
+  .pc-card.status-local  { border-color: var(--amber-border); }
+  .pc-card.status-pending { border-color: var(--red-border); }
   .pc-card-head { padding: 0.85rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .pc-card-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; }
   .pc-card-sub { font-size: 0.74rem; color: var(--muted); font-family: var(--mono); }
@@ -117,6 +122,38 @@
 
   /* Valor pill */
   .valor-pill { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 12px; font-size: 0.8rem; font-weight: 600; font-family: var(--mono); white-space: nowrap; }
+
+  /* ── STATUS BADGES ── */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+    font-family: var(--mono); letter-spacing: 0.02em;
+  }
+  .status-badge.drive {
+    background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border);
+  }
+  .status-badge.local {
+    background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border);
+  }
+  .status-badge.pending {
+    background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border);
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .status-dot.drive   { background: var(--accent); }
+  .status-dot.local   { background: var(--amber); }
+  .status-dot.pending { background: var(--red); animation: pulse-red 1.6s ease-in-out infinite; }
+
+  @keyframes pulse-red {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* Stat colorido por tipo */
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.red   { color: var(--red); }
 
   /* Upload */
   .upload-zone { border: 1.5px dashed var(--border-md); border-radius: 10px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; }
@@ -237,11 +274,29 @@
 
   <div id="pcErr"></div>
 
+  <!-- Stats com 4 indicadores: Total, Valor, Drive, Local, Pendente -->
   <div id="pcStats" style="display:none;">
     <div class="stats">
-      <div class="stat"><div class="stat-val" id="pcStatN">0</div><div class="stat-label">Registros</div></div>
-      <div class="stat"><div class="stat-val" id="pcStatV">R$ 0</div><div class="stat-label">Total solicitado</div></div>
-      <div class="stat"><div class="stat-val" id="pcStatC">0 / 0</div><div class="stat-label">Comprovantes</div></div>
+      <div class="stat">
+        <div class="stat-val" id="pcStatN">0</div>
+        <div class="stat-label">Registros</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="pcStatV">R$ 0</div>
+        <div class="stat-label">Total solicitado</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="pcStatDrive" style="color:var(--accent)">0</div>
+        <div class="stat-label">✅ No Drive</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val amber" id="pcStatLocal">0</div>
+        <div class="stat-label">💾 Salvo local</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val red" id="pcStatPend">0</div>
+        <div class="stat-label">⏳ Pendentes</div>
+      </div>
     </div>
   </div>
 
@@ -276,6 +331,14 @@ let waText = '';
 let comps = JSON.parse(localStorage.getItem('comps_v2') || '{}');
 function saveComps() { localStorage.setItem('comps_v2', JSON.stringify(comps)); }
 function compKey(r) { return `${r.nome.trim()}||${isoToKey(r.dataISO)}||${r.situacao.trim().slice(0,50)}`; }
+
+// Retorna o status de um comprovante: 'drive' | 'local' | 'pending'
+function compStatus(r) {
+  const ck = compKey(r);
+  const c = comps[ck];
+  if (!c) return 'pending';
+  return c.fileUrl ? 'drive' : 'local';
+}
 
 // ── Tema ──────────────────────────────────────────────────────
 let theme = localStorage.getItem('theme') || 'dark';
@@ -437,30 +500,52 @@ function loadPC() {
 
   if(!rows.length){ setPcArea('<div class="empty"><strong>Nenhum registro encontrado</strong>Verifique o nome ou o período.</div>'); document.getElementById('pcStats').style.display='none'; return; }
 
-  const totalV=rows.reduce((s,r)=>s+num(r.valorRaw),0);
-  const totalC=rows.filter(r=>comps[compKey(r)]).length;
-  document.getElementById('pcStatN').textContent=rows.length;
-  document.getElementById('pcStatV').textContent=fmt(totalV);
-  document.getElementById('pcStatC').textContent=`${totalC}/${rows.length}`;
-  document.getElementById('pcStats').style.display='';
+  const totalV = rows.reduce((s,r)=>s+num(r.valorRaw),0);
+  const nDrive  = rows.filter(r=>compStatus(r)==='drive').length;
+  const nLocal  = rows.filter(r=>compStatus(r)==='local').length;
+  const nPend   = rows.filter(r=>compStatus(r)==='pending').length;
+
+  document.getElementById('pcStatN').textContent    = rows.length;
+  document.getElementById('pcStatV').textContent    = fmt(totalV);
+  document.getElementById('pcStatDrive').textContent = nDrive;
+  document.getElementById('pcStatLocal').textContent = nLocal;
+  document.getElementById('pcStatPend').textContent  = nPend;
+  document.getElementById('pcStats').style.display   = '';
 
   const wrap=document.createElement('div');
   rows.forEach(r=>wrap.appendChild(buildPCCard(r, nome)));
   setPcArea(''); document.getElementById('pcArea').appendChild(wrap);
 }
 
+// ── Monta badge de status ─────────────────────────────────────
+function statusBadgeHTML(status) {
+  if (status === 'drive') {
+    return `<span class="status-badge drive"><span class="status-dot drive"></span>Enviado ao Drive</span>`;
+  } else if (status === 'local') {
+    return `<span class="status-badge local"><span class="status-dot local"></span>Salvo localmente</span>`;
+  } else {
+    return `<span class="status-badge pending"><span class="status-dot pending"></span>Pendente</span>`;
+  }
+}
+
 function buildPCCard(r, nome) {
-  const ck=compKey(r);
-  const comp=comps[ck];
-  const uid='pc_'+Math.random().toString(36).slice(2,8);
-  const el=document.createElement('div'); el.className='pc-card';
-  el.innerHTML=`
+  const ck  = compKey(r);
+  const comp = comps[ck];
+  const status = compStatus(r);
+  const uid = 'pc_'+Math.random().toString(36).slice(2,8);
+
+  const el = document.createElement('div');
+  el.className = `pc-card status-${status}`;
+  el.innerHTML = `
     <div class="pc-card-head">
       <div>
         <div class="pc-card-title">${r.situacao||'—'}</div>
         <div class="pc-card-sub">📅 ${isoToDisp(r.dataISO)} &nbsp;·&nbsp; 🕐 ${fmtHora(r.carimbo)} &nbsp;·&nbsp; 🍽️ ${r.solicito}</div>
       </div>
-      <div class="valor-pill">${fmt(num(r.valorRaw))}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="valor-pill">${fmt(num(r.valorRaw))}</div>
+        ${statusBadgeHTML(status)}
+      </div>
     </div>
     <div class="pc-card-body">
       <div id="comp_${uid}">
@@ -471,7 +556,6 @@ function buildPCCard(r, nome) {
 }
 
 function buildUploadZone(ck, uid, r, nome) {
-  // Codifica parâmetros para uso no handler inline
   const params = encodeURIComponent(JSON.stringify({ ck, uid, nome: r.nome, situacao: r.situacao, data: isoToDisp(r.dataISO) }));
   return `
     <div class="upload-zone" id="uz_${uid}"
@@ -485,17 +569,20 @@ function buildUploadZone(ck, uid, r, nome) {
 }
 
 function buildCompView(comp, ck, uid) {
+  const isDrive = !!comp.fileUrl;
   return `
     <div class="comp-row">
-      <span class="comp-icon">📄</span>
+      <span class="comp-icon">${isDrive ? '☁️' : '💾'}</span>
       <div class="comp-info">
         <div class="comp-name">${comp.fileName}</div>
-        ${comp.fileUrl
+        ${isDrive
           ? `<a class="comp-link" href="${comp.fileUrl}" target="_blank">Ver no Google Drive ↗</a>`
-          : `<span style="font-size:0.73rem;color:var(--muted)">Salvo localmente</span>`}
+          : `<span style="font-size:0.73rem;color:var(--amber)">Salvo localmente (sem URL do Drive)</span>`}
       </div>
-      <span class="comp-ok">✓ Enviado</span>
-      <button class="btn btn-sm btn-ghost" style="margin-left:8px" onclick="removeComp('${ck}','${uid}')">✕</button>
+      ${isDrive
+        ? `<span class="status-badge drive" style="flex-shrink:0;">✅ No Drive</span>`
+        : `<span class="status-badge local" style="flex-shrink:0;">💾 Local</span>`}
+      <button class="btn btn-sm btn-ghost" style="margin-left:8px;flex-shrink:0;" onclick="removeComp('${ck}','${uid}')">✕</button>
     </div>`;
 }
 
@@ -514,7 +601,6 @@ function processFile(file, p) {
   const area=document.getElementById('comp_'+p.uid);
   if(!area) return;
 
-  // Mostra loading imediatamente
   area.innerHTML=`
     <div class="comp-row">
       <span class="comp-icon">📄</span>
@@ -528,41 +614,54 @@ function processFile(file, p) {
     let success=false, fileUrl='', fileId='';
 
     try {
-      // Usa fetch com mode: 'no-cors' — Apps Script aceita via redirect
-      const formData=new FormData();
-      formData.append('payload', JSON.stringify({
-        nome: p.nome, data: p.data, situacao: p.situacao,
-        fileBase64: base64, fileName: file.name, mimeType: file.type
-      }));
-
-      // Tentativa 1: fetch normal (funciona se CORS estiver OK)
+      // Content-Type: text/plain evita o preflight CORS no Apps Script
+      // e permite seguir o redirect e ler a resposta normalmente
+      const res = await fetch(API, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
+      });
+      const text = await res.text();
       try {
-        const res=await fetch(API, {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
-        });
-        const json=await res.json();
-        if(json.success){ success=true; fileUrl=json.fileUrl; fileId=json.fileId; }
-      } catch(corsErr) {
-        // Tentativa 2: fetch no-cors (não retorna resposta, mas salva no Drive)
-        await fetch(API, {
-          method:'POST', mode:'no-cors',
-          headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
-        });
-        success=true; // assume sucesso pois no-cors não retorna erro
+        const json = JSON.parse(text);
+        if (json.success) { success=true; fileUrl=json.fileUrl||''; fileId=json.fileId||''; }
+      } catch { /* resposta não era JSON */ }
+      if (!success) {
+        // fallback: arquivo pode ter salvo mesmo sem JSON válido
+        success = res.ok;
       }
     } catch(e) {
       console.warn('Upload error:', e);
+      // último recurso: no-cors (salva no Drive mas sem URL de retorno)
+      try {
+        await fetch(API, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
+        });
+        success = true;
+      } catch(e2) { console.warn('Fallback error:', e2); }
     }
 
-    // Salva referência local sempre
     comps[p.ck]={ fileName:file.name, fileUrl, fileId, savedAt:new Date().toISOString() };
     saveComps();
-    area.innerHTML=buildCompView(comps[p.ck], p.ck, p.uid);
 
-    // Atualiza contador
+    // Atualiza o card inteiro (ícone, borda e badge mudam com o novo status)
+    area.innerHTML = buildCompView(comps[p.ck], p.ck, p.uid);
+
+    // Atualiza a borda e badge do card pai
+    const cardEl = area.closest('.pc-card');
+    if (cardEl) {
+      cardEl.classList.remove('status-pending','status-local','status-drive');
+      const newStatus = fileUrl ? 'drive' : 'local';
+      cardEl.classList.add('status-'+newStatus);
+
+      // Atualiza o badge no cabeçalho do card
+      const badgeEl = cardEl.querySelector('.status-badge');
+      if (badgeEl) badgeEl.outerHTML = statusBadgeHTML(newStatus);
+    }
+
     refreshPCStats();
     showToast(fileUrl ? '✅ Comprovante salvo no Google Drive!' : '✅ Comprovante salvo localmente!');
   };
@@ -571,7 +670,7 @@ function processFile(file, p) {
 
 function removeComp(ck, uid) {
   delete comps[ck]; saveComps();
-  loadPC(); // recarrega lista
+  loadPC();
   showToast('🗑️ Comprovante removido');
 }
 
@@ -579,8 +678,9 @@ function refreshPCStats() {
   const nome=document.getElementById('pcName').value.trim();
   if(!nome) return;
   const rows=allRows.filter(r=>r.nome.toLowerCase()===nome.toLowerCase());
-  const totalC=rows.filter(r=>comps[compKey(r)]).length;
-  document.getElementById('pcStatC').textContent=`${totalC}/${rows.length}`;
+  document.getElementById('pcStatDrive').textContent = rows.filter(r=>compStatus(r)==='drive').length;
+  document.getElementById('pcStatLocal').textContent = rows.filter(r=>compStatus(r)==='local').length;
+  document.getElementById('pcStatPend').textContent  = rows.filter(r=>compStatus(r)==='pending').length;
 }
 
 function clearPC() {
