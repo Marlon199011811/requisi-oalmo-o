@@ -606,25 +606,58 @@ function buildCompView(comp,ck,uid){
 }
 function handleDrop(e,p){e.preventDefault();const pr=JSON.parse(decodeURIComponent(p));document.getElementById('uz_'+pr.uid)&&document.getElementById('uz_'+pr.uid).classList.remove('drag');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0],pr);}
 function handleFile(input,p){const pr=JSON.parse(decodeURIComponent(p));if(input.files[0])processFile(input.files[0],pr);}
-function processFile(file,p){
-  const area=document.getElementById('comp_'+p.uid);if(!area)return;
-  area.innerHTML='<div class="comp-row"><span class="comp-icon">&#x1F4C4;</span><div class="comp-info"><div class="comp-name">'+file.name+'</div><div style="font-size:.73rem;color:var(--muted)">'+(file.size/1024).toFixed(1)+' KB</div></div><span class="comp-uploading"><span class="spin-sm"></span>Enviando...</span></div>';
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    const base64=ev.target.result.split(',')[1];let fileUrl='',fileId='';
-    try{
-      const res=await fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({nome:p.nome,data:p.data,situacao:p.situacao,fileBase64:base64,fileName:file.name,mimeType:file.type})});
-      const text=await res.text();
-      try{const j=JSON.parse(text);if(j.success){fileUrl=j.fileUrl||'';fileId=j.fileId||'';}}catch{}
-    }catch(err){
-      try{await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({nome:p.nome,data:p.data,situacao:p.situacao,fileBase64:base64,fileName:file.name,mimeType:file.type})});}catch{}
+function resizeImage(file,maxW,maxH,quality){
+  return new Promise((resolve)=>{
+    if(!file.type.startsWith('image/')){
+      const r=new FileReader();
+      r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});
+      r.readAsDataURL(file);return;
     }
-    comps[p.ck]={fileName:file.name,fileUrl,fileId,savedAt:new Date().toISOString()};saveComps();
-    area.innerHTML=buildCompView(comps[p.ck],p.ck,p.uid);
-    const card=area.closest('.pc-card');
-    if(card){card.classList.remove('status-pending','status-local','status-drive');card.classList.add('status-'+(fileUrl?'drive':'local'));const b=card.querySelector('.pc-card-head .status-badge');if(b)b.outerHTML=statusBadgeHTML(fileUrl?'drive':'local');}
-    refreshPCStats();showToast(fileUrl?'Salvo no Google Drive!':'Salvo localmente!');
-  };reader.readAsDataURL(file);
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',quality);
+      canvas.width=1;canvas.height=1; // libera memória do canvas
+      resolve({base64:dataUrl.split(',')[1],mimeType:'image/jpeg',fileName:file.name.replace(/\.[^.]+$/,'.jpg')});
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      const r=new FileReader();
+      r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});
+      r.readAsDataURL(file);
+    };
+    img.src=url;
+  });
+}
+async function processFile(file,p){
+  const area=document.getElementById('comp_'+p.uid);if(!area)return;
+  area.innerHTML='<div class="comp-row"><span class="comp-icon">&#x1F4C4;</span><div class="comp-info"><div class="comp-name">'+file.name+'</div><div style="font-size:.73rem;color:var(--muted)">'+(file.size/1024).toFixed(1)+' KB — processando...</div></div><span class="comp-uploading"><span class="spin-sm"></span>Processando...</span></div>';
+  let base64,mimeType,fileName;
+  try{
+    const result=await resizeImage(file,1600,1600,0.82);
+    base64=result.base64;mimeType=result.mimeType;fileName=result.fileName;
+  }catch(e){showToast('Erro ao processar imagem: '+e.message);return;}
+  area.innerHTML='<div class="comp-row"><span class="comp-icon">&#x1F4C4;</span><div class="comp-info"><div class="comp-name">'+fileName+'</div><div style="font-size:.73rem;color:var(--muted)">Enviando...</div></div><span class="comp-uploading"><span class="spin-sm"></span>Enviando...</span></div>';
+  let fileUrl='',fileId='';
+  try{
+    const res=await fetch(API,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({nome:p.nome,data:p.data,situacao:p.situacao,fileBase64:base64,fileName,mimeType})});
+    const text=await res.text();
+    try{const j=JSON.parse(text);if(j.success){fileUrl=j.fileUrl||'';fileId=j.fileId||'';}}catch{}
+  }catch(err){
+    try{await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({nome:p.nome,data:p.data,situacao:p.situacao,fileBase64:base64,fileName,mimeType})});}catch{}
+  }
+  comps[p.ck]={fileName,fileUrl,fileId,savedAt:new Date().toISOString()};saveComps();
+  area.innerHTML=buildCompView(comps[p.ck],p.ck,p.uid);
+  const card=area.closest('.pc-card');
+  if(card){card.classList.remove('status-pending','status-local','status-drive');card.classList.add('status-'+(fileUrl?'drive':'local'));const b=card.querySelector('.pc-card-head .status-badge');if(b)b.outerHTML=statusBadgeHTML(fileUrl?'drive':'local');}
+  refreshPCStats();showToast(fileUrl?'Salvo no Google Drive!':'Salvo localmente!');
 }
 function removeComp(ck,uid){delete comps[ck];saveComps();loadPC();showToast('Comprovante removido');}
 function refreshPCStats(){
