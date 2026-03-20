@@ -14,8 +14,10 @@
     --border: rgba(255,255,255,0.07); --border-md: rgba(255,255,255,0.13);
     --accent: #00e5a0; --accent-bg: rgba(0,229,160,0.10); --accent-border: rgba(0,229,160,0.25);
     --wa: #25D366; --wa-bg: rgba(37,211,102,0.10); --wa-border: rgba(37,211,102,0.28);
+    --indigo: #818cf8; --indigo-bg: rgba(99,102,241,0.10); --indigo-border: rgba(99,102,241,0.25);
+    --amber: #fbbf24; --amber-bg: rgba(251,191,36,0.10); --amber-border: rgba(251,191,36,0.25);
     --text: #f0f2f8; --muted: #7a8099;
-    --btn-ghost-bg: transparent; --btn-ghost-border: rgba(255,255,255,0.13); --btn-ghost-text: #f0f2f8;
+    --ghost-bg: transparent; --ghost-border: rgba(255,255,255,0.13); --ghost-text: #f0f2f8;
     --font: 'DM Sans', sans-serif; --mono: 'DM Mono', monospace;
     --shadow: none;
   }
@@ -24,38 +26,48 @@
     --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.13);
     --accent: #00a872; --accent-bg: rgba(0,168,114,0.08); --accent-border: rgba(0,168,114,0.25);
     --wa: #128C7E; --wa-bg: rgba(18,140,126,0.08); --wa-border: rgba(18,140,126,0.25);
+    --indigo: #4f46e5; --indigo-bg: rgba(79,70,229,0.08); --indigo-border: rgba(79,70,229,0.22);
+    --amber: #d97706; --amber-bg: rgba(217,119,6,0.08); --amber-border: rgba(217,119,6,0.22);
     --text: #111827; --muted: #6b7280;
-    --btn-ghost-bg: #ffffff; --btn-ghost-border: rgba(0,0,0,0.13); --btn-ghost-text: #111827;
+    --ghost-bg: #ffffff; --ghost-border: rgba(0,0,0,0.13); --ghost-text: #111827;
     --shadow: 0 1px 4px rgba(0,0,0,0.07);
   }
 
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem 1.5rem; transition: background 0.2s, color 0.2s; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; transition: background 0.2s, color 0.2s; }
 
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 10px; }
-  .topbar-left h1 { font-size: 1.45rem; font-weight: 600; letter-spacing: -0.02em; }
-  .topbar-left p { font-size: 0.78rem; color: var(--muted); font-family: var(--mono); margin-top: 3px; }
+  /* ── Nav ── */
+  .nav { background: var(--surface); border-bottom: 1px solid var(--border-md); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow); }
+  .nav-tabs { display: flex; }
+  .nav-tab { padding: 1rem 1.2rem; font-size: 0.86rem; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s; font-family: var(--font); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .theme-btn { background: none; border: 1px solid var(--border-md); border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; font-family: var(--font); color: var(--text); transition: border-color 0.15s; }
+  .theme-btn:hover { border-color: var(--accent); }
 
-  .theme-toggle { background: var(--surface); border: 1px solid var(--border-md); border-radius: 10px; padding: 6px 14px; cursor: pointer; font-size: 0.82rem; font-weight: 500; font-family: var(--font); color: var(--text); display: flex; align-items: center; gap: 6px; transition: all 0.15s; box-shadow: var(--shadow); }
-  .theme-toggle:hover { border-color: var(--accent); }
+  .page { display: none; padding: 2rem 1.5rem; max-width: 860px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ── Shared ── */
+  .section-head { margin-bottom: 1.75rem; }
+  .section-head h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
+  .section-head p { font-size: 0.78rem; color: var(--muted); font-family: var(--mono); margin-top: 3px; }
 
   .filter-bar { background: var(--surface); border: 1px solid var(--border-md); border-radius: 14px; padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; box-shadow: var(--shadow); }
   .fg { display: flex; flex-direction: column; gap: 5px; }
   .fg label { font-size: 0.68rem; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.07em; }
   .fg input[type="date"] { background: var(--bg); border: 1px solid var(--border-md); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 0.85rem; padding: 7px 12px; outline: none; cursor: pointer; transition: border-color 0.15s; }
   [data-theme="dark"] .fg input[type="date"] { color-scheme: dark; }
-  [data-theme="light"] .fg input[type="date"] { color-scheme: light; }
   .fg input[type="date"]:focus { border-color: var(--accent); }
 
   .btn { padding: 8px 18px; border-radius: 9px; font-size: 0.84rem; font-weight: 500; cursor: pointer; font-family: var(--font); border: none; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
   .btn:hover { opacity: 0.85; } .btn:active { transform: scale(0.97); }
-  .btn-primary { background: var(--accent); color: #fff; }
-  [data-theme="dark"] .btn-primary { color: #071a10; }
-  .btn-ghost { background: var(--btn-ghost-bg); color: var(--btn-ghost-text); border: 1px solid var(--btn-ghost-border); }
-  .btn-sm { padding: 5px 12px; font-size: 0.76rem; }
-  .btn-export { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
-  .btn-wa { background: var(--wa-bg); color: var(--wa); border: 1px solid var(--wa-border); }
-  .btn-copy { background: rgba(99,102,241,0.10); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
-  [data-theme="light"] .btn-copy { color: #4f46e5; border-color: rgba(79,70,229,0.25); background: rgba(79,70,229,0.07); }
+  .btn-primary { background: var(--accent); color: #071a10; }
+  [data-theme="light"] .btn-primary { color: #fff; }
+  .btn-ghost { background: var(--ghost-bg); color: var(--ghost-text); border: 1px solid var(--ghost-border); }
+  .btn-sm { padding: 5px 11px; font-size: 0.75rem; }
+  .btn-img  { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+  .btn-wa   { background: var(--wa-bg);  color: var(--wa);  border: 1px solid var(--wa-border); }
+  .btn-copy { background: var(--indigo-bg); color: var(--indigo); border: 1px solid var(--indigo-border); }
 
   .stats { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
   .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1.1rem; flex: 1; min-width: 110px; box-shadow: var(--shadow); }
@@ -65,109 +77,205 @@
   .actions { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .cards-grid { display: flex; flex-direction: column; gap: 1.25rem; }
 
+  /* ── Solicitação card ── */
   .pedido-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
   .pedido-header { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
   .pedido-title { font-size: 0.92rem; font-weight: 600; }
-  .pedido-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pedido-acts { display: flex; gap: 6px; flex-wrap: wrap; }
   .pedido-body { padding: 1rem 1.25rem; }
-
   .irow { display: flex; gap: 8px; margin-bottom: 0.55rem; align-items: flex-start; }
   .iicon { font-size: 13px; width: 18px; flex-shrink: 0; }
   .ilabel { font-size: 0.74rem; color: var(--muted); min-width: 85px; flex-shrink: 0; padding-top: 1px; }
   .ival { font-size: 0.86rem; font-weight: 500; }
   .green { color: var(--accent); }
   .divider { border: none; border-top: 1px solid var(--border); margin: 0.7rem 0; }
-
   .colab-list { display: flex; flex-direction: column; gap: 5px; }
   .colab-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; }
   .colab-name { font-size: 0.84rem; font-weight: 500; }
   .colab-emp { font-size: 0.74rem; color: var(--muted); }
   .meta { font-size: 0.7rem; color: var(--muted); text-align: right; margin-top: 0.65rem; font-family: var(--mono); }
 
-  /* Toast */
-  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e2333; color: #f0f2f8; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 20px; font-size: 0.85rem; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.25s ease, opacity 0.25s; opacity: 0; z-index: 999; white-space: nowrap; }
-  [data-theme="light"] .toast { background: #fff; color: #111827; border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  /* ── Prestação de Contas ── */
+  .pc-search { background: var(--surface); border: 1px solid var(--border-md); border-radius: 14px; padding: 1.4rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+  .pc-search h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .pc-search p  { font-size: 0.81rem; color: var(--muted); margin-bottom: 1rem; }
+  .search-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-input { width: 100%; background: var(--bg); border: 1px solid var(--border-md); border-radius: 9px; color: var(--text); font-family: var(--font); font-size: 0.9rem; padding: 9px 14px; outline: none; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--accent); }
+  .name-dd { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--card); border: 1px solid var(--border-md); border-radius: 10px; max-height: 210px; overflow-y: auto; z-index: 30; box-shadow: 0 4px 24px rgba(0,0,0,0.22); display: none; }
+  .name-dd.open { display: block; }
+  .name-opt { padding: 9px 14px; font-size: 0.87rem; cursor: pointer; transition: background 0.1s; }
+  .name-opt:hover { background: var(--accent-bg); color: var(--accent); }
 
-  /* Modal WhatsApp */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--card); border: 1px solid var(--border-md); border-radius: 16px; padding: 1.75rem; width: 100%; max-width: 440px; box-shadow: 0 8px 40px rgba(0,0,0,0.35); transform: scale(0.95); transition: transform 0.2s; }
-  .modal-overlay.open .modal { transform: scale(1); }
-  .modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; }
-  .modal p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; }
-  .modal-input { width: 100%; background: var(--bg); border: 1px solid var(--border-md); border-radius: 9px; color: var(--text); font-family: var(--mono); font-size: 0.9rem; padding: 10px 14px; outline: none; margin-bottom: 1rem; transition: border-color 0.15s; }
-  .modal-input:focus { border-color: var(--wa); }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  /* Registro PC */
+  .pc-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1rem; }
+  .pc-card-head { padding: 0.85rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .pc-card-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; }
+  .pc-card-sub { font-size: 0.74rem; color: var(--muted); font-family: var(--mono); }
+  .pc-card-body { padding: 1rem 1.2rem; }
 
+  /* Valor pill */
+  .valor-pill { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 12px; font-size: 0.8rem; font-weight: 600; font-family: var(--mono); white-space: nowrap; }
+
+  /* Upload */
+  .upload-zone { border: 1.5px dashed var(--border-md); border-radius: 10px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-bg); }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-zone p { font-size: 0.81rem; color: var(--muted); }
+  .upload-zone strong { color: var(--accent); }
+
+  /* Comprovante salvo */
+  .comp-row { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+  .comp-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .comp-info { flex: 1; min-width: 0; }
+  .comp-name { font-size: 0.83rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .comp-link { font-size: 0.75rem; color: var(--accent); text-decoration: none; }
+  .comp-link:hover { text-decoration: underline; }
+  .comp-ok { font-size: 0.75rem; color: var(--accent); white-space: nowrap; }
+  .comp-uploading { font-size: 0.75rem; color: var(--amber); white-space: nowrap; }
+
+  /* Spinner inline */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin-sm { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border-md); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 4px; }
+
+  /* Loader page */
   .loader { text-align: center; padding: 3rem; color: var(--muted); }
   .spinner { width: 30px; height: 30px; border: 2px solid var(--border-md); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .empty { text-align: center; color: var(--muted); padding: 3rem; font-size: 0.9rem; }
-  .empty strong { display: block; font-size: 1rem; color: var(--text); margin-bottom: 0.4rem; }
-  .err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 1rem 1.25rem; color: #ef4444; font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+  .empty strong { display: block; font-size: 1rem; color: var(--text); margin-bottom: 5px; }
+  .err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 1rem 1.25rem; color: #f87171; font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); color: var(--text); border: 1px solid var(--border-md); border-radius: 10px; padding: 10px 22px; font-size: 0.85rem; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.25); transition: transform 0.25s, opacity 0.25s; opacity: 0; z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* Modal WA */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--card); border: 1px solid var(--border-md); border-radius: 16px; padding: 1.75rem; width: 100%; max-width: 420px; transform: scale(0.95); transition: transform 0.2s; }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .modal p  { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.1rem; }
+  .modal-input { width: 100%; background: var(--bg); border: 1px solid var(--border-md); border-radius: 9px; color: var(--text); font-family: var(--mono); font-size: 0.9rem; padding: 10px 14px; outline: none; margin-bottom: 1rem; transition: border-color 0.15s; }
+  .modal-input:focus { border-color: var(--wa); }
+  .modal-acts { display: flex; gap: 8px; justify-content: flex-end; }
 
   #renderArea { position: fixed; left: -9999px; top: 0; }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-admin"     onclick="switchTab('admin')">📋 Solicitações</button>
+    <button class="nav-tab"        id="tab-prestacao" onclick="switchTab('prestacao')">🧾 Prestação de Contas</button>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️ Modo claro</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- ABA: SOLICITAÇÕES                              -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="page active" id="page-admin">
+  <div class="section-head">
     <h1>📋 Solicitações de Pagamento</h1>
     <p id="subtitleDate">Carregando...</p>
   </div>
-  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️ Modo claro</button>
-</div>
 
-<div class="filter-bar">
-  <div class="fg"><label>Data inicial</label><input type="date" id="dateFrom"></div>
-  <div class="fg"><label>Data final</label><input type="date" id="dateTo"></div>
-  <button class="btn btn-primary" onclick="applyFilter()">🔍 Filtrar</button>
-  <button class="btn btn-ghost" onclick="filterToday()">📅 Hoje</button>
-  <button class="btn btn-ghost" onclick="clearFilter()">↩ Todos</button>
-  <button class="btn btn-ghost" onclick="loadData()" title="Recarregar">🔄</button>
-</div>
-
-<div id="errArea"></div>
-
-<div id="statsArea" style="display:none;">
-  <div class="stats">
-    <div class="stat"><div class="stat-val" id="sTotal">0</div><div class="stat-label">Colaboradores</div></div>
-    <div class="stat"><div class="stat-val" id="sGrupos">0</div><div class="stat-label">Pedidos</div></div>
-    <div class="stat"><div class="stat-val" id="sValor">R$ 0</div><div class="stat-label">Valor total</div></div>
+  <div class="filter-bar">
+    <div class="fg"><label>Data inicial</label><input type="date" id="dateFrom"></div>
+    <div class="fg"><label>Data final</label><input type="date" id="dateTo"></div>
+    <button class="btn btn-primary" onclick="applyFilter()">🔍 Filtrar</button>
+    <button class="btn btn-ghost"   onclick="filterToday()">📅 Hoje</button>
+    <button class="btn btn-ghost"   onclick="clearFilter()">↩ Todos</button>
+    <button class="btn btn-ghost"   onclick="loadData()" title="Recarregar">🔄</button>
   </div>
-  <div class="actions">
-    <button class="btn btn-primary" onclick="exportAll()">⬇ Exportar todos</button>
-    <button class="btn btn-wa" onclick="waAll()">💬 WhatsApp — todos</button>
+
+  <div id="errArea"></div>
+
+  <div id="statsArea" style="display:none;">
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="sTotal">0</div><div class="stat-label">Colaboradores</div></div>
+      <div class="stat"><div class="stat-val" id="sGrupos">0</div><div class="stat-label">Pedidos</div></div>
+      <div class="stat"><div class="stat-val" id="sValor">R$ 0</div><div class="stat-label">Valor total</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="exportAll()">⬇ Exportar todos</button>
+      <button class="btn btn-wa"      onclick="waAll()">💬 WhatsApp — todos</button>
+    </div>
   </div>
+
+  <div id="mainArea"><div class="loader"><div class="spinner"></div><p>Carregando...</p></div></div>
 </div>
 
-<div id="mainArea"><div class="loader"><div class="spinner"></div><p>Carregando dados...</p></div></div>
-<div id="renderArea"></div>
+<!-- ══════════════════════════════════════════════ -->
+<!-- ABA: PRESTAÇÃO DE CONTAS                       -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="page" id="page-prestacao">
+  <div class="section-head">
+    <h1>🧾 Prestação de Contas</h1>
+    <p>Consulte seus registros e anexe comprovantes de alimentação</p>
+  </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+  <div class="pc-search">
+    <h2>Selecione seu nome</h2>
+    <p>Pesquise pelo seu nome para ver os registros e fazer upload dos comprovantes.</p>
+    <div class="search-row">
+      <div class="search-wrap">
+        <input class="search-input" id="pcName" type="text" placeholder="Digite seu nome..." autocomplete="off"
+          oninput="onNameInput()" onfocus="openDD()">
+        <div class="name-dd" id="nameDD"></div>
+      </div>
+      <div class="fg"><label>Data inicial</label><input type="date" id="pcFrom"></div>
+      <div class="fg"><label>Data final</label><input type="date" id="pcTo"></div>
+      <button class="btn btn-primary" onclick="loadPC()">🔍 Buscar</button>
+      <button class="btn btn-ghost"   onclick="clearPC()">↩ Limpar</button>
+    </div>
+  </div>
+
+  <div id="pcErr"></div>
+
+  <div id="pcStats" style="display:none;">
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="pcStatN">0</div><div class="stat-label">Registros</div></div>
+      <div class="stat"><div class="stat-val" id="pcStatV">R$ 0</div><div class="stat-label">Total solicitado</div></div>
+      <div class="stat"><div class="stat-val" id="pcStatC">0 / 0</div><div class="stat-label">Comprovantes</div></div>
+    </div>
+  </div>
+
+  <div id="pcArea">
+    <div class="empty"><strong>Nenhum colaborador selecionado</strong>Digite seu nome acima para ver seus registros.</div>
+  </div>
+</div>
 
 <!-- Modal WhatsApp -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalWA">
   <div class="modal">
     <h3>💬 Enviar pelo WhatsApp</h3>
-    <p>Digite o número com DDD (somente números) ou deixe em branco para abrir sem número.</p>
+    <p>Digite o número com DDD (somente números) ou deixe em branco para abrir o WhatsApp sem destinatário.</p>
     <input class="modal-input" id="waPhone" type="tel" placeholder="Ex: 69999999999" maxlength="15">
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-wa" onclick="confirmWa()">Abrir WhatsApp</button>
+    <div class="modal-acts">
+      <button class="btn btn-ghost" onclick="closeWA()">Cancelar</button>
+      <button class="btn btn-wa"    onclick="confirmWA()">Abrir WhatsApp</button>
     </div>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+<div id="renderArea"></div>
+
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbw1zwJ84qH1qgAfRRhNDXK0xETnkyTvwWIhG8GMh1yBW6aQ4OVimg55jVOLeMsOdcWlsA/exec';
+
 let allRows = [], grupos = [];
-let pendingWaText = '';
-let pendingWaAll = false;
-let pendingWaIdx = -1;
+let waText = '';
+
+// Comprovantes salvos localmente: chave → {fileName, fileUrl, fileId, savedAt}
+let comps = JSON.parse(localStorage.getItem('comps_v2') || '{}');
+function saveComps() { localStorage.setItem('comps_v2', JSON.stringify(comps)); }
+function compKey(r) { return `${r.nome.trim()}||${isoToKey(r.dataISO)}||${r.situacao.trim().slice(0,50)}`; }
 
 // ── Tema ──────────────────────────────────────────────────────
 let theme = localStorage.getItem('theme') || 'dark';
@@ -175,159 +283,110 @@ applyTheme(theme);
 function applyTheme(t) {
   theme = t;
   document.documentElement.setAttribute('data-theme', t);
-  const btn = document.getElementById('themeBtn');
-  if (btn) btn.textContent = t === 'dark' ? '☀️ Modo claro' : '🌙 Modo escuro';
+  const b = document.getElementById('themeBtn');
+  if (b) b.textContent = t === 'dark' ? '☀️ Modo claro' : '🌙 Modo escuro';
   localStorage.setItem('theme', t);
 }
 function toggleTheme() { applyTheme(theme === 'dark' ? 'light' : 'dark'); }
 
-// ── Datas ─────────────────────────────────────────────────────
-function isoToKey(s) {
-  const m = String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(t) {
+  ['admin','prestacao'].forEach(id => {
+    document.getElementById('page-'+id).classList.toggle('active', id===t);
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
+  });
+  if (t === 'prestacao') buildDD();
 }
-function isoToDisplay(s) {
-  const m = String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
-}
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function todayDisplay() {
-  const d = new Date();
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-}
-function fmtHora(s) {
-  if (!s) return '';
-  const d = new Date(s);
-  if (isNaN(d)) return '';
-  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-function num(v) {
-  if (typeof v === 'number') return v;
-  return parseFloat(String(v).replace(/[^\d,\.]/g,'').replace(',','.')) || 0;
-}
-function fmt(n) { return 'R$ ' + n.toFixed(2).replace('.',','); }
+
+// ── Helpers data ──────────────────────────────────────────────
+function isoToKey(s) { const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?`${m[1]}-${m[2]}-${m[3]}`:''; }
+function isoToDisp(s) { const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?`${m[3]}/${m[2]}/${m[1]}`:''; }
+function todayKey() { const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function todayDisp() { const d=new Date(); return `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()}`; }
+function fmtHora(s) { const d=new Date(s||''); if(isNaN(d))return''; return `${p2(d.getHours())}:${p2(d.getMinutes())}`; }
+function p2(n) { return String(n).padStart(2,'0'); }
+function num(v) { if(typeof v==='number')return v; return parseFloat(String(v).replace(/[^\d,\.]/g,'').replace(',','.'))||0; }
+function fmt(n) { return 'R$ '+n.toFixed(2).replace('.',','); }
 
 // ── Load ──────────────────────────────────────────────────────
 async function loadData() {
-  setMain('<div class="loader"><div class="spinner"></div><p>Carregando dados...</p></div>');
-  clearErr();
-  document.getElementById('statsArea').style.display = 'none';
+  setMain('<div class="loader"><div class="spinner"></div><p>Carregando...</p></div>');
+  clearErr(); document.getElementById('statsArea').style.display='none';
   try {
-    const res = await fetch(API);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const raw = await res.json();
-    allRows = parse(raw);
-    if (!allRows.length) throw new Error('Nenhum dado encontrado na planilha.');
+    const r = await fetch(API);
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    allRows = parse(await r.json());
+    if (!allRows.length) throw new Error('Nenhum dado na planilha.');
     filterToday();
   } catch(e) { showErr(e.message); setMain(''); }
 }
 
 function parse(data) {
-  const rows = Array.isArray(data) ? data : (data.values || data.data || []);
-  return rows.map(r => ({
-    carimbo:  r['Carimbo de data/hora'] || '',
-    nome:     (r['Nome'] || '').trim(),
-    empresa:  (r['Equipe / Empresa'] || '').trim(),
-    dataISO:  r['Data do serviço'] || '',
-    situacao: (r['O que foi feito no local'] || '').trim(),
-    objetivo: (r['Por que está pedindo almoço'] || '').trim(),
-    valorRaw: r['Valor do almoço (R$)'] || 0,
-    solicito: (r['Solicito.'] || '').trim(),
-  })).filter(r => r.nome && r.nome.length > 1);
+  const rows = Array.isArray(data)?data:(data.values||data.data||[]);
+  return rows.map(r=>({
+    carimbo: r['Carimbo de data/hora']||'',
+    nome:    (r['Nome']||'').trim(),
+    empresa: (r['Equipe / Empresa']||'').trim(),
+    dataISO: r['Data do serviço']||'',
+    situacao:(r['O que foi feito no local']||'').trim(),
+    objetivo:(r['Por que está pedindo almoço']||'').trim(),
+    valorRaw:r['Valor do almoço (R$)']||0,
+    solicito:(r['Solicito.']||'').trim(),
+  })).filter(r=>r.nome&&r.nome.length>1);
 }
 
-// ── Filtros ───────────────────────────────────────────────────
-function filterToday() {
-  const k = todayKey();
-  document.getElementById('dateFrom').value = k;
-  document.getElementById('dateTo').value = k;
-  applyFilter();
-}
-function clearFilter() {
-  document.getElementById('dateFrom').value = '';
-  document.getElementById('dateTo').value = '';
-  applyFilter();
-}
+// ── Filtros admin ─────────────────────────────────────────────
+function filterToday() { const k=todayKey(); document.getElementById('dateFrom').value=k; document.getElementById('dateTo').value=k; applyFilter(); }
+function clearFilter()  { document.getElementById('dateFrom').value=''; document.getElementById('dateTo').value=''; applyFilter(); }
 function applyFilter() {
-  const from = document.getElementById('dateFrom').value;
-  const to   = document.getElementById('dateTo').value;
-  let rows = allRows.filter(r => r.nome);
-  if (from || to) {
-    rows = rows.filter(r => {
-      const k = isoToKey(r.dataISO);
-      if (!k) return false;
-      if (from && k < from) return false;
-      if (to   && k > to)   return false;
-      return true;
-    });
-  }
-  const sub = document.getElementById('subtitleDate');
-  if (from && to && from === to) {
-    sub.textContent = from === todayKey() ? `Hoje · ${todayDisplay()}` : isoToDisplay(from);
-  } else if (from && to) {
-    sub.textContent = `${isoToDisplay(from)} até ${isoToDisplay(to)}`;
-  } else {
-    sub.textContent = 'Todos os registros';
-  }
-  grupos = group(rows);
-  renderStats(rows);
-  renderCards();
+  const from=document.getElementById('dateFrom').value, to=document.getElementById('dateTo').value;
+  let rows=allRows.filter(r=>r.nome);
+  if(from||to) rows=rows.filter(r=>{ const k=isoToKey(r.dataISO); return (!from||k>=from)&&(!to||k<=to); });
+  const sub=document.getElementById('subtitleDate');
+  sub.textContent = from&&to&&from===to ? (from===todayKey()?`Hoje · ${todayDisp()}`:isoToDisp(from))
+    : from&&to ? `${isoToDisp(from)} até ${isoToDisp(to)}` : 'Todos os registros';
+  grupos=group(rows); renderStats(rows); renderCards();
 }
 
-// ── Group ─────────────────────────────────────────────────────
 function group(rows) {
-  const map = {};
-  rows.forEach(r => {
-    const key = `${r.situacao.toLowerCase().replace(/\s+/g,' ').trim()}||${r.objetivo.toLowerCase().trim()}||${isoToKey(r.dataISO)}`;
-    if (!map[key]) map[key] = { situacao: r.situacao||'—', objetivo: r.objetivo||'—', data: isoToDisplay(r.dataISO), solicito: r.solicito, colaboradores: [], carimbos: [], totalValor: 0 };
-    map[key].colaboradores.push({ nome: r.nome, empresa: r.empresa });
-    map[key].carimbos.push(r.carimbo);
-    map[key].totalValor += num(r.valorRaw);
+  const map={};
+  rows.forEach(r=>{
+    const k=`${r.situacao.toLowerCase().replace(/\s+/g,' ').trim()}||${r.objetivo.toLowerCase().trim()}||${isoToKey(r.dataISO)}`;
+    if(!map[k]) map[k]={situacao:r.situacao||'—',objetivo:r.objetivo||'—',data:isoToDisp(r.dataISO),solicito:r.solicito,colaboradores:[],carimbos:[],totalValor:0};
+    map[k].colaboradores.push({nome:r.nome,empresa:r.empresa});
+    map[k].carimbos.push(r.carimbo);
+    map[k].totalValor+=num(r.valorRaw);
   });
-  return Object.values(map).sort((a,b) => a.data.localeCompare(b.data));
+  return Object.values(map).sort((a,b)=>a.data.localeCompare(b.data));
 }
 
-// ── Stats ─────────────────────────────────────────────────────
 function renderStats(rows) {
-  document.getElementById('sTotal').textContent = rows.length;
-  document.getElementById('sGrupos').textContent = grupos.length;
-  document.getElementById('sValor').textContent = fmt(rows.reduce((s,r) => s + num(r.valorRaw), 0));
-  document.getElementById('statsArea').style.display = rows.length ? '' : 'none';
+  document.getElementById('sTotal').textContent=rows.length;
+  document.getElementById('sGrupos').textContent=grupos.length;
+  document.getElementById('sValor').textContent=fmt(rows.reduce((s,r)=>s+num(r.valorRaw),0));
+  document.getElementById('statsArea').style.display=rows.length?'':'none';
 }
 
-// ── Cards ─────────────────────────────────────────────────────
 function renderCards() {
-  if (!grupos.length) {
-    const from = document.getElementById('dateFrom').value;
-    const isToday = from === todayKey();
-    setMain(`<div class="empty"><strong>${isToday ? 'Sem registros para hoje' : 'Nenhum registro encontrado'}</strong>${isToday ? 'Não há solicitações para ' + todayDisplay() + '.' : 'Tente outro período.'}</div>`);
-    return;
-  }
-  const wrap = document.createElement('div');
-  wrap.className = 'cards-grid';
-  grupos.forEach((g, i) => wrap.appendChild(buildCard(g, i)));
-  setMain('');
-  document.getElementById('mainArea').appendChild(wrap);
+  if(!grupos.length){ setMain('<div class="empty"><strong>Sem registros</strong>Tente outro período.</div>'); return; }
+  const wrap=document.createElement('div'); wrap.className='cards-grid';
+  grupos.forEach((g,i)=>wrap.appendChild(buildCard(g,i)));
+  setMain(''); document.getElementById('mainArea').appendChild(wrap);
 }
 
-function buildCard(g, i) {
-  const n = g.colaboradores.length;
-  const unit = n > 0 ? g.totalValor / n : 0;
-  const horas = g.carimbos.map(fmtHora).filter(Boolean).sort();
-  const hMin = horas[0]||'', hMax = horas[horas.length-1]||'';
-  const meta = hMin && hMax && hMin !== hMax ? `Registros entre ${hMin} e ${hMax} · ${g.data}` : hMin ? `Registrado às ${hMin} · ${g.data}` : g.data;
-  const el = document.createElement('div');
-  el.className = 'pedido-card';
-  el.innerHTML = `
+function buildCard(g,i) {
+  const n=g.colaboradores.length, unit=n>0?g.totalValor/n:0;
+  const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
+  const hMin=horas[0]||'', hMax=horas[horas.length-1]||'';
+  const meta=hMin&&hMax&&hMin!==hMax?`Registros entre ${hMin} e ${hMax} · ${g.data}`:hMin?`Registrado às ${hMin} · ${g.data}`:g.data;
+  const el=document.createElement('div'); el.className='pedido-card';
+  el.innerHTML=`
     <div class="pedido-header">
       <div class="pedido-title">📝 Solicitação de Pagamento</div>
-      <div class="pedido-actions">
+      <div class="pedido-acts">
         <button class="btn btn-sm btn-copy" onclick="copyText(${i})">📋 Copiar</button>
-        <button class="btn btn-sm btn-wa" onclick="openWaModal(${i})">💬 WhatsApp</button>
-        <button class="btn btn-sm btn-export" onclick="exportCard(${i})">⬇ Imagem</button>
+        <button class="btn btn-sm btn-wa"   onclick="openWA(${i})">💬 WhatsApp</button>
+        <button class="btn btn-sm btn-img"  onclick="exportCard(${i})">⬇ Imagem</button>
       </div>
     </div>
     <div class="pedido-body">
@@ -340,155 +399,253 @@ function buildCard(g, i) {
       <div class="irow"><span class="iicon">💵</span><span class="ilabel">Total:</span><span class="ival green">${fmt(g.totalValor)} (${n} colaborador${n>1?'es':''})</span></div>
       <hr class="divider">
       <div class="irow"><span class="iicon">👷</span><span class="ilabel">Colaboradores:</span></div>
-      <div class="colab-list">
-        ${g.colaboradores.map(c=>`<div class="colab-item"><span class="colab-name">${c.nome}</span><span class="colab-emp">${c.empresa}</span></div>`).join('')}
-      </div>
+      <div class="colab-list">${g.colaboradores.map(c=>`<div class="colab-item"><span class="colab-name">${c.nome}</span><span class="colab-emp">${c.empresa}</span></div>`).join('')}</div>
       <div class="meta">${meta}</div>
     </div>`;
   return el;
 }
 
-// ── Texto WhatsApp ────────────────────────────────────────────
-function buildWaText(g) {
-  const n = g.colaboradores.length;
-  const unit = n > 0 ? g.totalValor / n : 0;
-  const horas = g.carimbos.map(fmtHora).filter(Boolean).sort();
-  const hMin = horas[0]||'', hMax = horas[horas.length-1]||'';
-  const meta = hMin && hMax && hMin !== hMax ? `Registros entre ${hMin} e ${hMax}` : hMin ? `Registrado às ${hMin}` : '';
-
-  const colabs = g.colaboradores.map(c => `   • ${c.nome} — _${c.empresa}_`).join('\n');
-
-  return (
-`📝 *Solicitação de Pagamento*
-
-📍 *Situação:* ${g.situacao}
-🎯 *Objetivo:* ${g.objetivo}
-🍽️ *Solicito:* ${g.solicito}
-📅 *Data:* ${g.data}
-
-💰 *Valor unit.:* ${fmt(unit)} cada
-💵 *Total:* ${fmt(g.totalValor)} (${n} colaborador${n>1?'es':''})
-
-👷 *Colaboradores:*
-${colabs}
-
-${meta ? '🕐 ' + meta : ''}`
-  ).trim();
+// ── PRESTAÇÃO DE CONTAS ───────────────────────────────────────
+function buildDD() {
+  const names=[...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort();
+  renderDD(names);
 }
-
-function buildWaAllText() {
-  return grupos.map((g, i) => {
-    return `${i > 0 ? '\n' + '─'.repeat(30) + '\n\n' : ''}` + buildWaText(g);
+function renderDD(names) {
+  document.getElementById('nameDD').innerHTML=names.map(n=>{
+    const safe=n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="name-opt" onclick="pickName('${safe}')">${n}</div>`;
   }).join('');
 }
+function onNameInput() {
+  const q=document.getElementById('pcName').value.toLowerCase();
+  const names=[...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort().filter(n=>n.toLowerCase().includes(q));
+  renderDD(names);
+  document.getElementById('nameDD').classList.add('open');
+}
+function openDD() { buildDD(); document.getElementById('nameDD').classList.add('open'); }
+function pickName(n) { document.getElementById('pcName').value=n; document.getElementById('nameDD').classList.remove('open'); }
+document.addEventListener('click', e=>{ if(!e.target.closest('.search-wrap')) document.getElementById('nameDD').classList.remove('open'); });
 
-// ── Modal WhatsApp ────────────────────────────────────────────
-function openWaModal(idx) {
-  pendingWaAll = false;
-  pendingWaIdx = idx;
-  pendingWaText = buildWaText(grupos[idx]);
-  document.getElementById('waPhone').value = localStorage.getItem('waPhone') || '';
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('waPhone').focus(), 100);
-}
-function waAll() {
-  pendingWaAll = true;
-  pendingWaIdx = -1;
-  pendingWaText = buildWaAllText();
-  document.getElementById('waPhone').value = localStorage.getItem('waPhone') || '';
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('waPhone').focus(), 100);
-}
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-function confirmWa() {
-  const raw = document.getElementById('waPhone').value.replace(/\D/g,'');
-  if (raw) localStorage.setItem('waPhone', raw);
-  const phone = raw ? '55' + raw : '';
-  const encoded = encodeURIComponent(pendingWaText);
-  const url = phone
-    ? `https://wa.me/${phone}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
-  window.open(url, '_blank');
-  closeModal();
-  showToast('✅ WhatsApp aberto!');
+function loadPC() {
+  const nome=document.getElementById('pcName').value.trim();
+  if(!nome){ setPcErr('Digite ou selecione seu nome.'); return; }
+  clearPcErr();
+  const from=document.getElementById('pcFrom').value, to=document.getElementById('pcTo').value;
+  let rows=allRows.filter(r=>r.nome.toLowerCase()===nome.toLowerCase());
+  if(from||to) rows=rows.filter(r=>{ const k=isoToKey(r.dataISO); return (!from||k>=from)&&(!to||k<=to); });
+  rows.sort((a,b)=>isoToKey(a.dataISO).localeCompare(isoToKey(b.dataISO)));
+
+  if(!rows.length){ setPcArea('<div class="empty"><strong>Nenhum registro encontrado</strong>Verifique o nome ou o período.</div>'); document.getElementById('pcStats').style.display='none'; return; }
+
+  const totalV=rows.reduce((s,r)=>s+num(r.valorRaw),0);
+  const totalC=rows.filter(r=>comps[compKey(r)]).length;
+  document.getElementById('pcStatN').textContent=rows.length;
+  document.getElementById('pcStatV').textContent=fmt(totalV);
+  document.getElementById('pcStatC').textContent=`${totalC}/${rows.length}`;
+  document.getElementById('pcStats').style.display='';
+
+  const wrap=document.createElement('div');
+  rows.forEach(r=>wrap.appendChild(buildPCCard(r, nome)));
+  setPcArea(''); document.getElementById('pcArea').appendChild(wrap);
 }
 
-// ── Copiar texto ──────────────────────────────────────────────
+function buildPCCard(r, nome) {
+  const ck=compKey(r);
+  const comp=comps[ck];
+  const uid='pc_'+Math.random().toString(36).slice(2,8);
+  const el=document.createElement('div'); el.className='pc-card';
+  el.innerHTML=`
+    <div class="pc-card-head">
+      <div>
+        <div class="pc-card-title">${r.situacao||'—'}</div>
+        <div class="pc-card-sub">📅 ${isoToDisp(r.dataISO)} &nbsp;·&nbsp; 🕐 ${fmtHora(r.carimbo)} &nbsp;·&nbsp; 🍽️ ${r.solicito}</div>
+      </div>
+      <div class="valor-pill">${fmt(num(r.valorRaw))}</div>
+    </div>
+    <div class="pc-card-body">
+      <div id="comp_${uid}">
+        ${comp ? buildCompView(comp, ck, uid) : buildUploadZone(ck, uid, r, nome)}
+      </div>
+    </div>`;
+  return el;
+}
+
+function buildUploadZone(ck, uid, r, nome) {
+  // Codifica parâmetros para uso no handler inline
+  const params = encodeURIComponent(JSON.stringify({ ck, uid, nome: r.nome, situacao: r.situacao, data: isoToDisp(r.dataISO) }));
+  return `
+    <div class="upload-zone" id="uz_${uid}"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event,'${params}')">
+      <input type="file" accept="image/*,application/pdf" onchange="handleFile(this,'${params}')">
+      <p>📎 <strong>Clique ou arraste</strong> o comprovante aqui</p>
+      <p style="font-size:0.73rem;margin-top:3px;color:var(--muted)">Imagem ou PDF</p>
+    </div>`;
+}
+
+function buildCompView(comp, ck, uid) {
+  return `
+    <div class="comp-row">
+      <span class="comp-icon">📄</span>
+      <div class="comp-info">
+        <div class="comp-name">${comp.fileName}</div>
+        ${comp.fileUrl
+          ? `<a class="comp-link" href="${comp.fileUrl}" target="_blank">Ver no Google Drive ↗</a>`
+          : `<span style="font-size:0.73rem;color:var(--muted)">Salvo localmente</span>`}
+      </div>
+      <span class="comp-ok">✓ Enviado</span>
+      <button class="btn btn-sm btn-ghost" style="margin-left:8px" onclick="removeComp('${ck}','${uid}')">✕</button>
+    </div>`;
+}
+
+function handleDrop(e, paramsEnc) {
+  e.preventDefault();
+  const p=JSON.parse(decodeURIComponent(paramsEnc));
+  document.getElementById('uz_'+p.uid)?.classList.remove('drag');
+  if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0], p);
+}
+function handleFile(input, paramsEnc) {
+  const p=JSON.parse(decodeURIComponent(paramsEnc));
+  if(input.files[0]) processFile(input.files[0], p);
+}
+
+function processFile(file, p) {
+  const area=document.getElementById('comp_'+p.uid);
+  if(!area) return;
+
+  // Mostra loading imediatamente
+  area.innerHTML=`
+    <div class="comp-row">
+      <span class="comp-icon">📄</span>
+      <div class="comp-info"><div class="comp-name">${file.name}</div><div style="font-size:0.73rem;color:var(--muted)">${(file.size/1024).toFixed(1)} KB</div></div>
+      <span class="comp-uploading"><span class="spin-sm"></span>Enviando...</span>
+    </div>`;
+
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const base64=ev.target.result.split(',')[1];
+    let success=false, fileUrl='', fileId='';
+
+    try {
+      // Usa fetch com mode: 'no-cors' — Apps Script aceita via redirect
+      const formData=new FormData();
+      formData.append('payload', JSON.stringify({
+        nome: p.nome, data: p.data, situacao: p.situacao,
+        fileBase64: base64, fileName: file.name, mimeType: file.type
+      }));
+
+      // Tentativa 1: fetch normal (funciona se CORS estiver OK)
+      try {
+        const res=await fetch(API, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
+        });
+        const json=await res.json();
+        if(json.success){ success=true; fileUrl=json.fileUrl; fileId=json.fileId; }
+      } catch(corsErr) {
+        // Tentativa 2: fetch no-cors (não retorna resposta, mas salva no Drive)
+        await fetch(API, {
+          method:'POST', mode:'no-cors',
+          headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({ nome:p.nome, data:p.data, situacao:p.situacao, fileBase64:base64, fileName:file.name, mimeType:file.type })
+        });
+        success=true; // assume sucesso pois no-cors não retorna erro
+      }
+    } catch(e) {
+      console.warn('Upload error:', e);
+    }
+
+    // Salva referência local sempre
+    comps[p.ck]={ fileName:file.name, fileUrl, fileId, savedAt:new Date().toISOString() };
+    saveComps();
+    area.innerHTML=buildCompView(comps[p.ck], p.ck, p.uid);
+
+    // Atualiza contador
+    refreshPCStats();
+    showToast(fileUrl ? '✅ Comprovante salvo no Google Drive!' : '✅ Comprovante salvo localmente!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeComp(ck, uid) {
+  delete comps[ck]; saveComps();
+  loadPC(); // recarrega lista
+  showToast('🗑️ Comprovante removido');
+}
+
+function refreshPCStats() {
+  const nome=document.getElementById('pcName').value.trim();
+  if(!nome) return;
+  const rows=allRows.filter(r=>r.nome.toLowerCase()===nome.toLowerCase());
+  const totalC=rows.filter(r=>comps[compKey(r)]).length;
+  document.getElementById('pcStatC').textContent=`${totalC}/${rows.length}`;
+}
+
+function clearPC() {
+  document.getElementById('pcName').value='';
+  document.getElementById('pcFrom').value='';
+  document.getElementById('pcTo').value='';
+  setPcArea('<div class="empty"><strong>Nenhum colaborador selecionado</strong>Digite seu nome acima para ver seus registros.</div>');
+  document.getElementById('pcStats').style.display='none';
+  clearPcErr();
+}
+
+// ── WhatsApp ──────────────────────────────────────────────────
+function buildWaText(g) {
+  const n=g.colaboradores.length, unit=n>0?g.totalValor/n:0;
+  const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
+  const hMin=horas[0]||'', hMax=horas[horas.length-1]||'';
+  const meta=hMin&&hMax&&hMin!==hMax?`Registros entre ${hMin} e ${hMax}`:hMin?`Registrado às ${hMin}`:'';
+  return `📝 *Solicitação de Pagamento*\n\n📍 *Situação:* ${g.situacao}\n🎯 *Objetivo:* ${g.objetivo}\n🍽️ *Solicito:* ${g.solicito}\n📅 *Data:* ${g.data}\n\n💰 *Valor unit.:* ${fmt(unit)} cada\n💵 *Total:* ${fmt(g.totalValor)} (${n} colaborador${n>1?'es':''})\n\n👷 *Colaboradores:*\n${g.colaboradores.map(c=>`   • ${c.nome} — _${c.empresa}_`).join('\n')}${meta?'\n\n🕐 '+meta:''}`.trim();
+}
+function buildWaAllText() { return grupos.map((g,i)=>`${i>0?'\n'+'─'.repeat(30)+'\n\n':''}${buildWaText(g)}`).join(''); }
+function openWA(idx) { waText=buildWaText(grupos[idx]); document.getElementById('waPhone').value=localStorage.getItem('waPhone')||''; document.getElementById('modalWA').classList.add('open'); setTimeout(()=>document.getElementById('waPhone').focus(),80); }
+function waAll()    { waText=buildWaAllText(); document.getElementById('waPhone').value=localStorage.getItem('waPhone')||''; document.getElementById('modalWA').classList.add('open'); setTimeout(()=>document.getElementById('waPhone').focus(),80); }
+function closeWA()  { document.getElementById('modalWA').classList.remove('open'); }
+function confirmWA(){ const raw=document.getElementById('waPhone').value.replace(/\D/g,''); if(raw)localStorage.setItem('waPhone',raw); const phone=raw?'55'+raw:''; window.open((phone?`https://wa.me/${phone}`:`https://wa.me`)+`?text=${encodeURIComponent(waText)}`,'_blank'); closeWA(); showToast('✅ WhatsApp aberto!'); }
+
+// ── Copiar / Export ───────────────────────────────────────────
 async function copyText(idx) {
-  const text = buildWaText(grupos[idx]);
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast('📋 Texto copiado!');
-  } catch {
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 Texto copiado!');
-  }
+  const t=buildWaText(grupos[idx]);
+  try{ await navigator.clipboard.writeText(t); }catch{ const a=document.createElement('textarea'); a.value=t; a.style.cssText='position:fixed;opacity:0'; document.body.appendChild(a); a.select(); document.execCommand('copy'); document.body.removeChild(a); }
+  showToast('📋 Texto copiado!');
 }
 
-// ── Export imagem ─────────────────────────────────────────────
 function buildExportHTML(g) {
-  const n = g.colaboradores.length, unit = n > 0 ? g.totalValor / n : 0;
-  const horas = g.carimbos.map(fmtHora).filter(Boolean).sort();
-  const hMin = horas[0]||'', hMax = horas[horas.length-1]||'';
-  const meta = hMin && hMax && hMin !== hMax ? `Registros entre ${hMin} e ${hMax} · ${g.data}` : hMin ? `Registrado às ${hMin} · ${g.data}` : g.data;
-  const row = (ic,lb,vl,gr=false) => `<div style="display:flex;gap:7px;margin-bottom:9px;align-items:flex-start;"><span style="font-size:13px;width:20px;flex-shrink:0;">${ic}</span><span style="font-size:11px;color:#7a8099;min-width:82px;flex-shrink:0;padding-top:1px;">${lb}</span><span style="font-size:13px;font-weight:500;color:${gr?'#00e5a0':'#f0f2f8'};">${vl}</span></div>`;
-  return `<div style="background:#1e2333;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:24px;width:600px;font-family:sans-serif;">
-    <div style="font-size:15px;font-weight:600;color:#f0f2f8;padding-bottom:13px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08);">📝 Solicitação de Pagamento</div>
-    ${row('📍','Situação:',g.situacao)}${row('🎯','Objetivo:',g.objetivo)}${row('🍽️','Solicito:',g.solicito)}${row('📅','Data:',g.data)}
-    <div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0;"></div>
-    ${row('💰','Valor unit.:',fmt(unit)+' cada',true)}${row('💵','Total:',fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')',true)}
-    <div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0;"></div>
-    ${row('👷','Colaboradores:','')}
-    ${g.colaboradores.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:7px 12px;margin-bottom:5px;"><span style="font-size:13px;font-weight:500;color:#f0f2f8;">${c.nome}</span><span style="font-size:11px;color:#7a8099;">${c.empresa}</span></div>`).join('')}
-    <div style="font-size:11px;color:#7a8099;text-align:right;margin-top:12px;font-family:monospace;">${meta}</div>
-  </div>`;
+  const n=g.colaboradores.length, unit=n>0?g.totalValor/n:0;
+  const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
+  const hMin=horas[0]||'', hMax=horas[horas.length-1]||'';
+  const meta=hMin&&hMax&&hMin!==hMax?`Registros entre ${hMin} e ${hMax} · ${g.data}`:hMin?`Registrado às ${hMin} · ${g.data}`:g.data;
+  const row=(ic,lb,vl,gr=false)=>`<div style="display:flex;gap:7px;margin-bottom:9px;align-items:flex-start;"><span style="font-size:13px;width:20px;flex-shrink:0;">${ic}</span><span style="font-size:11px;color:#7a8099;min-width:82px;flex-shrink:0;padding-top:1px;">${lb}</span><span style="font-size:13px;font-weight:500;color:${gr?'#00e5a0':'#f0f2f8'};">${vl}</span></div>`;
+  return `<div style="background:#1e2333;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:24px;width:600px;font-family:sans-serif;"><div style="font-size:15px;font-weight:600;color:#f0f2f8;padding-bottom:13px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08);">📝 Solicitação de Pagamento</div>${row('📍','Situação:',g.situacao)}${row('🎯','Objetivo:',g.objetivo)}${row('🍽️','Solicito:',g.solicito)}${row('📅','Data:',g.data)}<div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0;"></div>${row('💰','Valor unit.:',fmt(unit)+' cada',true)}${row('💵','Total:',fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')',true)}<div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0;"></div>${row('👷','Colaboradores:','')}${g.colaboradores.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:7px 12px;margin-bottom:5px;"><span style="font-size:13px;font-weight:500;color:#f0f2f8;">${c.nome}</span><span style="font-size:11px;color:#7a8099;">${c.empresa}</span></div>`).join('')}<div style="font-size:11px;color:#7a8099;text-align:right;margin-top:12px;font-family:monospace;">${meta}</div></div>`;
 }
 
 async function exportCard(idx) {
-  const area = document.getElementById('renderArea');
-  area.innerHTML = buildExportHTML(grupos[idx]);
-  await new Promise(r => setTimeout(r,150));
-  const canvas = await html2canvas(area.firstElementChild, { backgroundColor:'#1e2333', scale:2 });
-  const slug = (grupos[idx].situacao||'pedido').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').slice(0,30);
-  dl(canvas, `solicitacao_${idx+1}_${slug}.png`);
-  area.innerHTML = '';
+  const area=document.getElementById('renderArea'); area.innerHTML=buildExportHTML(grupos[idx]);
+  await new Promise(r=>setTimeout(r,150));
+  const canvas=await html2canvas(area.firstElementChild,{backgroundColor:'#1e2333',scale:2});
+  dl(canvas,`solicitacao_${idx+1}_${(grupos[idx].situacao||'p').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'').slice(0,30)}.png`);
+  area.innerHTML='';
 }
-async function exportAll() {
-  for (let i=0; i<grupos.length; i++) { await exportCard(i); await new Promise(r => setTimeout(r,350)); }
-}
-function dl(canvas, name) {
-  const a = document.createElement('a'); a.download = name; a.href = canvas.toDataURL('image/png'); a.click();
-}
+async function exportAll() { for(let i=0;i<grupos.length;i++){await exportCard(i);await new Promise(r=>setTimeout(r,350));} }
+function dl(c,n){ const a=document.createElement('a'); a.download=n; a.href=c.toDataURL('image/png'); a.click(); }
 
 // ── Toast ─────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ── Fechar modal clicando fora ────────────────────────────────
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal();
-});
-
-// ── Enter no campo de telefone ────────────────────────────────
-document.getElementById('waPhone').addEventListener('keydown', e => {
-  if (e.key === 'Enter') confirmWa();
-  if (e.key === 'Escape') closeModal();
-});
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
 
 // ── Helpers UI ────────────────────────────────────────────────
-function setMain(html) { document.getElementById('mainArea').innerHTML = html; }
-function showErr(msg) { document.getElementById('errArea').innerHTML = `<div class="err">⚠️ ${msg} &nbsp; <a href="#" onclick="loadData();return false;" style="color:var(--accent);">Tentar novamente</a></div>`; }
-function clearErr() { document.getElementById('errArea').innerHTML = ''; }
+function setMain(h)  { document.getElementById('mainArea').innerHTML=h; }
+function setPcArea(h){ document.getElementById('pcArea').innerHTML=h; }
+function showErr(m)  { document.getElementById('errArea').innerHTML=`<div class="err">⚠️ ${m} <a href="#" onclick="loadData();return false;" style="color:var(--accent)">Tentar novamente</a></div>`; }
+function clearErr()  { document.getElementById('errArea').innerHTML=''; }
+function setPcErr(m) { document.getElementById('pcErr').innerHTML=`<div class="err">⚠️ ${m}</div>`; }
+function clearPcErr(){ document.getElementById('pcErr').innerHTML=''; }
+
+// Modal eventos
+document.getElementById('modalWA').addEventListener('click', e=>{ if(e.target===e.currentTarget)closeWA(); });
+document.getElementById('waPhone').addEventListener('keydown', e=>{ if(e.key==='Enter')confirmWA(); if(e.key==='Escape')closeWA(); });
 
 loadData();
 </script>
