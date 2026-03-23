@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -75,10 +76,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .filter-inner{padding:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
 .fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px;}
 .fg label{font-size:.64rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;}
-.fg input[type="date"]{background:var(--surface2);border:1px solid var(--border-md);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.85rem;padding:9px 12px;outline:none;width:100%;transition:border-color .15s;}
+.fg input[type="date"],.fg select{background:var(--surface2);border:1px solid var(--border-md);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.85rem;padding:9px 12px;outline:none;width:100%;transition:border-color .15s;}
 [data-theme="dark"] .fg input[type="date"]{color-scheme:dark;}
-.fg input[type="date"]:focus{border-color:var(--accent);}
+.fg input[type="date"]:focus,.fg select:focus{border-color:var(--accent);}
+.fg select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23606480' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.stats-grid.c4{grid-template-columns:repeat(2,1fr);}
 .stats-grid.c5{grid-template-columns:repeat(3,1fr);}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 12px 10px;}
 .stat-card .val{font-size:1.35rem;font-weight:700;color:var(--accent);font-family:var(--mono);letter-spacing:-.03em;line-height:1;margin-bottom:4px;}
@@ -94,6 +97,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn-wa{background:var(--wa-dim);color:var(--wa);border:1px solid var(--wa-border);}
 .btn-img{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
 .btn-copy{background:var(--indigo-dim);color:var(--indigo);border:1px solid rgba(129,140,248,.25);}
+.btn-excel{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
 .btn-sm{padding:8px 13px;font-size:.78rem;min-height:36px;border-radius:9px;}
 .btn-icon-only{width:38px;padding:0;}
 .cards-stack{display:flex;flex-direction:column;gap:12px;}
@@ -184,7 +188,52 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @keyframes ripple-anim{to{transform:scale(4);opacity:0}}
 .spinning{animation:spin .7s linear infinite;}
 #renderArea{position:fixed;left:-9999px;top:0;}
-@media(min-width:600px){.values-row{grid-template-columns:repeat(4,1fr);}.stats-grid.c5{grid-template-columns:repeat(5,1fr);}}
+
+/* ── ADMIN: LOGIN ────────────────────────────────────────────── */
+.admin-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:20px;text-align:center;padding:32px 16px;}
+.lock-icon{width:72px;height:72px;border-radius:20px;background:var(--indigo-dim);border:1px solid var(--indigo-border);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:4px;}
+.lock-title{font-size:1.15rem;font-weight:700;}
+.lock-sub{font-size:.82rem;color:var(--muted);max-width:260px;line-height:1.5;}
+.lock-input-wrap{position:relative;width:100%;max-width:300px;}
+.lock-input{width:100%;background:var(--surface2);border:1.5px solid var(--border-md);border-radius:14px;color:var(--text);font-family:var(--mono);font-size:1.05rem;padding:14px 48px 14px 18px;outline:none;letter-spacing:.1em;transition:border-color .2s;text-align:center;}
+.lock-input:focus{border-color:var(--indigo);}
+.lock-input.error{border-color:var(--red);animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+.lock-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);font-size:18px;user-select:none;}
+.lock-btn{width:100%;max-width:300px;padding:14px;border-radius:14px;background:var(--indigo);color:#fff;font-size:.95rem;font-weight:600;font-family:var(--font);border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.lock-btn:active{transform:scale(.97);opacity:.85;}
+.lock-err{font-size:.8rem;color:var(--red);min-height:1.2em;}
+
+/* ── ADMIN: TABLE ────────────────────────────────────────────── */
+.admin-filters{background:var(--surface);border:1px solid var(--border-md);border-radius:16px;padding:14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.admin-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+.admin-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+.admin-action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.admin-table-wrap{border-radius:14px;overflow:hidden;border:1px solid var(--border-md);margin-bottom:20px;}
+.admin-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.admin-table thead{background:var(--surface2);}
+.admin-table th{padding:10px 14px;text-align:left;font-size:.67rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border-md);white-space:nowrap;}
+.admin-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:var(--surface2);}
+.adm-name{font-weight:600;font-size:.88rem;}
+.adm-emp{font-size:.72rem;color:var(--muted);}
+.adm-date{font-family:var(--mono);font-size:.75rem;color:var(--text2);}
+.adm-val{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--accent);}
+.adm-sit{font-size:.78rem;color:var(--text2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.adm-badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 9px;font-size:.68rem;font-weight:600;white-space:nowrap;}
+.adm-badge.drive{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
+.adm-badge.local{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);}
+.adm-badge.pending{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+.adm-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.adm-dot.drive{background:var(--accent);}
+.adm-dot.local{background:var(--amber);}
+.adm-dot.pending{background:var(--red);animation:pdot 1.6s ease-in-out infinite;}
+.admin-search{background:var(--surface2);border:1px solid var(--border-md);border-radius:10px;color:var(--text);font-family:var(--font);font-size:.9rem;padding:9px 14px;outline:none;width:100%;transition:border-color .15s;}
+.admin-search:focus{border-color:var(--accent);}
+.sort-btn{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;}
+.sort-btn:hover{color:var(--text);}
+@media(min-width:600px){.values-row{grid-template-columns:repeat(4,1fr);}.stats-grid.c5{grid-template-columns:repeat(5,1fr);}.admin-filter-grid{grid-template-columns:repeat(4,1fr);}.admin-stats{grid-template-columns:repeat(4,1fr);}}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:4px}
@@ -207,6 +256,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   </div>
 </header>
 
+<!-- PAGE: Solicitações -->
 <div class="page active" id="page-admin">
   <div class="page-inner">
     <div class="section-header">
@@ -243,6 +293,88 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   </div>
 </div>
 
+<!-- PAGE: Admin (password-protected) -->
+<div class="page" id="page-admctrl">
+  <div class="page-inner">
+
+    <!-- Lock screen -->
+    <div id="adminLockScreen" class="admin-lock">
+      <div class="lock-icon">&#x1F512;</div>
+      <div class="lock-title">Acesso Restrito</div>
+      <div class="lock-sub">Esta area e protegida por senha. Digite a senha para continuar.</div>
+      <div class="lock-input-wrap">
+        <input class="lock-input" id="lockInput" type="password" placeholder="Senha" maxlength="32"
+          onkeydown="if(event.key==='Enter')tryUnlock()">
+        <span class="lock-eye" id="lockEye" onclick="toggleLockEye()">&#x1F441;</span>
+      </div>
+      <div class="lock-err" id="lockErr"></div>
+      <button class="lock-btn" onclick="tryUnlock()">&#x1F513; Entrar</button>
+    </div>
+
+    <!-- Admin content (hidden until unlocked) -->
+    <div id="adminContent" style="display:none">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h2>&#x1F6E1;&#xFE0F; Painel Admin</h2>
+          <p>Comprovantes por colaborador</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="lockAdmin()">&#x1F512; Sair</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="admin-filters">
+        <div class="admin-filter-grid">
+          <div class="fg"><label>Buscar nome</label><input class="admin-search" id="admSearch" type="text" placeholder="Nome..." oninput="renderAdminTable()"></div>
+          <div class="fg"><label>Empresa</label>
+            <select id="admEmpresa" onchange="renderAdminTable()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="fg"><label>Status</label>
+            <select id="admStatus" onchange="renderAdminTable()">
+              <option value="">Todos</option>
+              <option value="drive">&#x2705; No Drive</option>
+              <option value="local">&#x1F4BE; Local</option>
+              <option value="pending">&#x23F3; Pendente</option>
+            </select>
+          </div>
+          <div class="fg"><label>Periodo</label>
+            <select id="admPeriodo" onchange="renderAdminTable()">
+              <option value="todos">Todos</option>
+              <option value="hoje">Hoje</option>
+              <option value="semana">Esta semana</option>
+              <option value="mes">Este mes</option>
+            </select>
+          </div>
+        </div>
+        <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="fg"><label>Data inicial</label><input type="date" id="admFrom" oninput="renderAdminTable()"></div>
+          <div class="fg"><label>Data final</label><input type="date" id="admTo" oninput="renderAdminTable()"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="admin-stats" id="admStats" style="display:none">
+        <div class="stat-card"><div class="val" id="admStatTotal">0</div><div class="lbl">Registros</div></div>
+        <div class="stat-card"><div class="val" id="admStatDrive">0</div><div class="lbl">&#x2705; No Drive</div></div>
+        <div class="stat-card"><div class="val amber" id="admStatLocal">0</div><div class="lbl">&#x1F4BE; Local</div></div>
+        <div class="stat-card"><div class="val red" id="admStatPend">0</div><div class="lbl">&#x23F3; Pendente</div></div>
+      </div>
+
+      <!-- Export -->
+      <div class="admin-action-row">
+        <button class="btn btn-excel" onclick="exportAdminExcel()">&#x1F4CA; Exportar Excel</button>
+        <button class="btn btn-ghost"  onclick="clearAdminFilters()">&#x21A9; Limpar Filtros</button>
+      </div>
+
+      <div id="admTableWrap">
+        <div class="empty"><div class="empty-icon">&#x1F4CA;</div><strong>Nenhum dado</strong>Carregue os dados primeiro.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: Prestação -->
 <div class="page" id="page-prestacao">
   <div class="page-inner">
     <div class="section-header">
@@ -285,11 +417,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <button class="nav-item active" id="nav-admin" onclick="switchTab('admin')">
     <div class="nav-pill"></div><span class="nav-icon">&#x1F4CB;</span><span class="nav-lbl">Solicitacoes</span>
   </button>
+  <button class="nav-item" id="nav-admctrl" onclick="switchTab('admctrl')">
+    <div class="nav-pill"></div><span class="nav-icon">&#x1F6E1;&#xFE0F;</span><span class="nav-lbl">Admin</span>
+  </button>
   <button class="nav-item" id="nav-prestacao" onclick="switchTab('prestacao')">
     <div class="nav-pill"></div><span class="nav-icon">&#x1F9FE;</span><span class="nav-lbl">Prestacao</span>
   </button>
 </nav>
 
+<!-- WhatsApp sheet -->
 <div class="sheet-overlay" id="sheetWA" onclick="closeWA(event)">
   <div class="bottom-sheet">
     <div class="sheet-handle"></div>
@@ -308,8 +444,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 const API='https://script.google.com/macros/s/AKfycbw1zwJ84qH1qgAfRRhNDXK0xETnkyTvwWIhG8GMh1yBW6aQ4OVimg55jVOLeMsOdcWlsA/exec';
+const ADMIN_PASS='Admin@2026';
 let allRows=[],grupos=[],waText='',activeChip='hoje',deferredPrompt=null;
 let comps=JSON.parse(localStorage.getItem('comps_v2')||'{}');
+let adminUnlocked=false;
+let admSortCol='nome',admSortDir=1;
 function saveComps(){localStorage.setItem('comps_v2',JSON.stringify(comps));}
 function compKey(r){return r.nome.trim()+'||'+isoToKey(r.dataISO)+'||'+r.situacao.trim().slice(0,50);}
 function compStatus(r){const c=comps[compKey(r)];if(!c)return'pending';return c.fileUrl?'drive':'local';}
@@ -333,20 +472,218 @@ let theme=localStorage.getItem('theme')||'dark';
 applyTheme(theme);
 function applyTheme(t){theme=t;document.documentElement.setAttribute('data-theme',t);const b=document.getElementById('themeBtn');if(b)b.textContent=t==='dark'?'\u2600\uFE0F':'\uD83C\uDF19';const m=document.getElementById('metaTheme');if(m)m.content=t==='dark'?'#0d0f14':'#f0f2f7';localStorage.setItem('theme',t);}
 function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
-function switchTab(t){['admin','prestacao'].forEach(id=>{document.getElementById('page-'+id).classList.toggle('active',id===t);document.getElementById('nav-'+id).classList.toggle('active',id===t);});if(t==='prestacao')buildDD();}
+function switchTab(t){
+  ['admin','admctrl','prestacao'].forEach(id=>{
+    document.getElementById('page-'+id).classList.toggle('active',id===t);
+    document.getElementById('nav-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='prestacao')buildDD();
+  if(t==='admctrl'&&adminUnlocked)renderAdminTable();
+}
 document.addEventListener('pointerdown',e=>{const el=e.target.closest('.btn,.chip,.nav-item,.icon-btn');if(!el)return;const r=document.createElement('span');r.className='ripple';const rect=el.getBoundingClientRect(),size=Math.max(rect.width,rect.height);r.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(e.clientX-rect.left-size/2)+'px;top:'+(e.clientY-rect.top-size/2)+'px';el.appendChild(r);r.addEventListener('animationend',()=>r.remove());});
 
-function isoToKey(s){const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[1]+'-'+m[2]+'-'+m[3]:'';}
-function isoToDisp(s){const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:'';}
-function todayKey(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
-function todayDisp(){const d=new Date();return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}
-function weekStart(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
-function monthStart(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-01';}
-function fmtHora(s){const d=new Date(s||'');if(isNaN(d))return'';return p2(d.getHours())+':'+p2(d.getMinutes());}
-function p2(n){return String(n).padStart(2,'0');}
-function num(v){if(typeof v==='number')return v;return parseFloat(String(v).replace(/[^\d,\.]/g,'').replace(',','.'))||0;}
-function fmt(n){return 'R$ '+n.toFixed(2).replace('.',',');}
-function fmtS(n){return 'R$'+n.toFixed(0);}
+// ── ADMIN AUTH ──────────────────────────────────────────────────
+function toggleLockEye(){
+  const inp=document.getElementById('lockInput');
+  const eye=document.getElementById('lockEye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🔒';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+function tryUnlock(){
+  const val=document.getElementById('lockInput').value;
+  const inp=document.getElementById('lockInput');
+  const err=document.getElementById('lockErr');
+  if(val===ADMIN_PASS){
+    adminUnlocked=true;
+    document.getElementById('adminLockScreen').style.display='none';
+    document.getElementById('adminContent').style.display='block';
+    populateAdminEmpresaFilter();
+    renderAdminTable();
+    err.textContent='';
+    inp.value='';
+  } else {
+    inp.classList.add('error');
+    err.textContent='Senha incorreta. Tente novamente.';
+    setTimeout(()=>inp.classList.remove('error'),400);
+    inp.value='';
+    inp.focus();
+  }
+}
+function lockAdmin(){
+  adminUnlocked=false;
+  document.getElementById('adminLockScreen').style.display='flex';
+  document.getElementById('adminContent').style.display='none';
+  document.getElementById('lockInput').value='';
+  document.getElementById('lockErr').textContent='';
+}
+document.getElementById('lockInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')tryUnlock();
+});
+
+// ── ADMIN TABLE ─────────────────────────────────────────────────
+function populateAdminEmpresaFilter(){
+  const sel=document.getElementById('admEmpresa');
+  const empresas=[...new Set(allRows.map(r=>r.empresa).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Todas</option>'+empresas.map(e=>'<option value="'+e+'">'+e+'</option>').join('');
+}
+
+function getAdminFilteredRows(){
+  const search=document.getElementById('admSearch').value.toLowerCase().trim();
+  const empresa=document.getElementById('admEmpresa').value;
+  const status=document.getElementById('admStatus').value;
+  const periodo=document.getElementById('admPeriodo').value;
+  const from=document.getElementById('admFrom').value;
+  const to=document.getElementById('admTo').value;
+  const tk=todayKey();
+
+  let rows=[...allRows];
+
+  if(search) rows=rows.filter(r=>r.nome.toLowerCase().includes(search));
+  if(empresa) rows=rows.filter(r=>r.empresa===empresa);
+  if(status) rows=rows.filter(r=>compStatus(r)===status);
+
+  // Period filter (select overrides date inputs if not "todos")
+  if(periodo==='hoje') rows=rows.filter(r=>isoToKey(r.dataISO)===tk);
+  else if(periodo==='semana') rows=rows.filter(r=>isoToKey(r.dataISO)>=weekStart());
+  else if(periodo==='mes') rows=rows.filter(r=>isoToKey(r.dataISO)>=monthStart());
+  else {
+    // custom date range
+    if(from||to) rows=rows.filter(r=>{const k=isoToKey(r.dataISO);return(!from||k>=from)&&(!to||k<=to);});
+  }
+
+  return rows;
+}
+
+function renderAdminTable(){
+  if(!adminUnlocked)return;
+  const rows=getAdminFilteredRows();
+
+  // Update stats
+  const driveN=rows.filter(r=>compStatus(r)==='drive').length;
+  const localN=rows.filter(r=>compStatus(r)==='local').length;
+  const pendN=rows.filter(r=>compStatus(r)==='pending').length;
+  document.getElementById('admStatTotal').textContent=rows.length;
+  document.getElementById('admStatDrive').textContent=driveN;
+  document.getElementById('admStatLocal').textContent=localN;
+  document.getElementById('admStatPend').textContent=pendN;
+  document.getElementById('admStats').style.display=rows.length?'':'none';
+
+  if(!rows.length){
+    document.getElementById('admTableWrap').innerHTML='<div class="empty"><div class="empty-icon">&#x1F50D;</div><strong>Nenhum resultado</strong>Tente outros filtros.</div>';
+    return;
+  }
+
+  // Sort
+  const sorted=[...rows].sort((a,b)=>{
+    let va='',vb='';
+    if(admSortCol==='nome'){va=a.nome;vb=b.nome;}
+    else if(admSortCol==='empresa'){va=a.empresa;vb=b.empresa;}
+    else if(admSortCol==='data'){va=isoToKey(a.dataISO);vb=isoToKey(b.dataISO);}
+    else if(admSortCol==='valor'){va=num(a.valorRaw);vb=num(b.valorRaw);return(va-vb)*admSortDir;}
+    else if(admSortCol==='status'){va=compStatus(a);vb=compStatus(b);}
+    return va.localeCompare(vb)*admSortDir;
+  });
+
+  function sortArrow(col){
+    if(admSortCol!==col)return'<span style="opacity:.3">&#x21C5;</span>';
+    return admSortDir===1?'<span>&#x2B07;</span>':'<span>&#x2B06;</span>';
+  }
+  function setSort(col){if(admSortCol===col)admSortDir*=-1;else{admSortCol=col;admSortDir=1;}renderAdminTable();}
+
+  const statusLabel={drive:'✅ Drive',local:'💾 Local',pending:'⏳ Pendente'};
+  const statusClass={drive:'drive',local:'local',pending:'pending'};
+
+  let html='<div class="admin-table-wrap" style="overflow-x:auto"><table class="admin-table"><thead><tr>';
+  html+='<th><span class="sort-btn" onclick="setSort(\'nome\')">Colaborador '+sortArrow('nome')+'</span></th>';
+  html+='<th><span class="sort-btn" onclick="setSort(\'empresa\')">Empresa '+sortArrow('empresa')+'</span></th>';
+  html+='<th><span class="sort-btn" onclick="setSort(\'data\')">Data '+sortArrow('data')+'</span></th>';
+  html+='<th><span class="sort-btn" onclick="setSort(\'valor\')">Valor '+sortArrow('valor')+'</span></th>';
+  html+='<th>Situacao</th>';
+  html+='<th><span class="sort-btn" onclick="setSort(\'status\')">Comprovante '+sortArrow('status')+'</span></th>';
+  html+='</tr></thead><tbody>';
+
+  sorted.forEach(r=>{
+    const st=compStatus(r);
+    html+='<tr>';
+    html+='<td><div class="adm-name">'+r.nome+'</div></td>';
+    html+='<td><div class="adm-emp">'+r.empresa+'</div></td>';
+    html+='<td><div class="adm-date">'+isoToDisp(r.dataISO)+'</div></td>';
+    html+='<td><div class="adm-val">'+fmt(num(r.valorRaw))+'</div></td>';
+    html+='<td><div class="adm-sit" title="'+r.situacao+'">'+r.situacao+'</div></td>';
+    html+='<td><span class="adm-badge '+statusClass[st]+'"><span class="adm-dot '+statusClass[st]+'"></span>'+statusLabel[st]+'</span></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('admTableWrap').innerHTML=html;
+  document.getElementById('admStats').style.display='grid';
+}
+window.setSort=function(col){if(admSortCol===col)admSortDir*=-1;else{admSortCol=col;admSortDir=1;}renderAdminTable();};
+
+function clearAdminFilters(){
+  document.getElementById('admSearch').value='';
+  document.getElementById('admEmpresa').value='';
+  document.getElementById('admStatus').value='';
+  document.getElementById('admPeriodo').value='todos';
+  document.getElementById('admFrom').value='';
+  document.getElementById('admTo').value='';
+  renderAdminTable();
+}
+
+function exportAdminExcel(){
+  const rows=getAdminFilteredRows();
+  if(!rows.length){showToast('Nenhum dado para exportar');return;}
+
+  const statusLabel={drive:'No Drive',local:'Local',pending:'Pendente'};
+  const data=rows.map(r=>({
+    'Nome':r.nome,
+    'Empresa':r.empresa,
+    'Data':isoToDisp(r.dataISO),
+    'Situacao':r.situacao,
+    'Objetivo':r.objetivo,
+    'Solicito':r.solicito,
+    'Valor (R$)':num(r.valorRaw),
+    'Comprovante':statusLabel[compStatus(r)],
+    'Arquivo':(comps[compKey(r)]||{}).fileName||'',
+    'Link Drive':(comps[compKey(r)]||{}).fileUrl||'',
+    'Enviado em':(comps[compKey(r)]||{}).savedAt?new Date((comps[compKey(r)]||{}).savedAt).toLocaleString('pt-BR'):'',
+  }));
+
+  const ws=XLSX.utils.json_to_sheet(data);
+
+  // Column widths
+  ws['!cols']=[
+    {wch:28},{wch:20},{wch:12},{wch:36},{wch:36},{wch:20},
+    {wch:12},{wch:14},{wch:28},{wch:36},{wch:20}
+  ];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Comprovantes');
+
+  // Summary sheet
+  const total=rows.length;
+  const drive=rows.filter(r=>compStatus(r)==='drive').length;
+  const local=rows.filter(r=>compStatus(r)==='local').length;
+  const pend=rows.filter(r=>compStatus(r)==='pending').length;
+  const totalVal=rows.reduce((s,r)=>s+num(r.valorRaw),0);
+  const sumData=[
+    ['Relatorio de Comprovantes',''],
+    ['Gerado em',new Date().toLocaleString('pt-BR')],
+    [''],
+    ['Total de registros',total],
+    ['Comprovantes no Drive',drive],
+    ['Comprovantes locais',local],
+    ['Pendentes',pend],
+    ['Valor total (R$)',totalVal.toFixed(2)],
+  ];
+  const ws2=XLSX.utils.aoa_to_sheet(sumData);
+  ws2['!cols']=[{wch:28},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumo');
+
+  const date=new Date();
+  const fname='comprovantes_'+date.getFullYear()+p2(date.getMonth()+1)+p2(date.getDate())+'.xlsx';
+  XLSX.writeFile(wb,fname);
+  showToast('Excel exportado!');
+}
 
 // ── LOAD DATA ─────────────────────────────────────────────────
 async function loadData(){
@@ -364,29 +701,20 @@ async function loadData(){
       if(fetchErr.message.startsWith('Servidor')) throw fetchErr;
       throw new Error('Falha de conexao: '+fetchErr.message+'. Verifique sua internet e se o Apps Script esta publicado como webapp acessivel por "Qualquer pessoa".');
     }
-
     let json;
     try{ json=JSON.parse(rawText); }
     catch(e){
       const preview=rawText.slice(0,200).replace(/</g,'&lt;');
       throw new Error('Resposta invalida (nao e JSON). Provavel causa: Apps Script nao foi reimplantado apos alteracoes. Preview: '+preview);
     }
-
     allRows=parse(json);
-
     if(!allRows.length){
       const isArray=Array.isArray(json);
       const rows=isArray?json:(json.rows||[]);
       const firstRow=rows[0];
       const cols=firstRow?Object.keys(firstRow).join(' | '):'(sem linhas)';
-      throw new Error(
-        'Nenhum registro valido encontrado. '+
-        (rows.length===0
-          ? 'A planilha parece estar vazia ou o nome da aba esta incorreto no Apps Script.'
-          : 'Linhas encontradas: '+rows.length+'. Colunas da 1a linha: '+cols+'. Verifique se a coluna "Nome" existe na planilha.')
-      );
+      throw new Error('Nenhum registro valido encontrado. '+(rows.length===0?'A planilha parece estar vazia ou o nome da aba esta incorreto no Apps Script.':'Linhas encontradas: '+rows.length+'. Colunas da 1a linha: '+cols+'. Verifique se a coluna "Nome" existe na planilha.'));
     }
-
     if(Array.isArray(json.comprovantes)){
       json.comprovantes.forEach(c=>{
         if(!c.nome||!c.situacao)return;
@@ -399,6 +727,8 @@ async function loadData(){
       saveComps();
     }
     chipFilter(activeChip);
+    // Update admin table if open
+    if(adminUnlocked){populateAdminEmpresaFilter();renderAdminTable();}
   }catch(e){
     showErr(e.message);
     setMain('');
@@ -408,73 +738,34 @@ async function loadData(){
 }
 function triggerRefresh(){loadData();}
 
-// ── PARSE CORRIGIDO ────────────────────────────────────────────
+// ── PARSE ─────────────────────────────────────────────────────
 function parse(data){
   const rows=Array.isArray(data)?data:(data.rows||data.values||data.data||[]);
   if(!rows.length)return[];
-
-  // Normaliza string: minusculo, sem acentos, sem espacos extras
-  function normalize(s){
-    return String(s||'').toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/\s+/g,' ').trim();
-  }
-
-  // Busca valor no objeto por candidatos normalizados (exato e parcial)
+  function normalize(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
   function col(r,...candidates){
-    if(!r.__nkeys__){
-      const map={};
-      Object.keys(r).forEach(k=>{
-        const nk=normalize(k);
-        map[nk]=r[k];
-      });
-      Object.defineProperty(r,'__nkeys__',{value:map,enumerable:false});
-    }
+    if(!r.__nkeys__){const map={};Object.keys(r).forEach(k=>{const nk=normalize(k);map[nk]=r[k];});Object.defineProperty(r,'__nkeys__',{value:map,enumerable:false});}
     const map=r.__nkeys__;
-    // Busca exata normalizada
-    for(const c of candidates){
-      const nc=normalize(c);
-      if(map[nc]!==undefined&&map[nc]!==null&&map[nc]!=='')return map[nc];
-    }
-    // Busca parcial: candidato começa com os primeiros N chars
-    for(const c of candidates){
-      const nc=normalize(c);
-      const len=Math.min(nc.length,12);
-      const prefix=nc.slice(0,len);
-      const found=Object.keys(map).find(k=>k.startsWith(prefix));
-      if(found!==undefined&&map[found]!==undefined&&map[found]!=='')return map[found];
-    }
+    for(const c of candidates){const nc=normalize(c);if(map[nc]!==undefined&&map[nc]!==null&&map[nc]!=='')return map[nc];}
+    for(const c of candidates){const nc=normalize(c);const len=Math.min(nc.length,12);const prefix=nc.slice(0,len);const found=Object.keys(map).find(k=>k.startsWith(prefix));if(found!==undefined&&map[found]!==undefined&&map[found]!=='')return map[found];}
     return'';
   }
-
-  // Normaliza datas vindas como ISO string, Date object ou dd/MM/yyyy
   function normDate(v){
     if(!v)return'';
-    if(typeof v==='object'&&v!==null){
-      try{const d=new Date(v);if(!isNaN(d))return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}catch(e){}return'';
-    }
+    if(typeof v==='object'&&v!==null){try{const d=new Date(v);if(!isNaN(d))return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}catch(e){}return'';}
     const s=String(v).trim();
-    const mISO=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(mISO)return mISO[1]+'-'+mISO[2]+'-'+mISO[3];
-    const mBR=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-    if(mBR)return mBR[3]+'-'+mBR[2]+'-'+mBR[1];
-    // Tenta converter string genérica como Date
+    const mISO=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(mISO)return mISO[1]+'-'+mISO[2]+'-'+mISO[3];
+    const mBR=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);if(mBR)return mBR[3]+'-'+mBR[2]+'-'+mBR[1];
     try{const d=new Date(s);if(!isNaN(d))return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}catch(e){}
     return s;
   }
-
   return rows.map(r=>({
-    carimbo: String(col(r,'Carimbo de data/hora','Timestamp','carimbo')||''),
-    // "Nome " tem espaço no cabeçalho — a normalização resolve
-    nome:    String(col(r,'Nome','nome','name')||'').trim(),
-    empresa: String(col(r,'Equipe / Empresa','Equipe/Empresa','Empresa','Equipe','equipe')||'').trim(),
-    // "Data do serviço" com acento — normalização resolve
-    dataISO: normDate(col(r,'Data do servico','Data do servico','Data do servi','Data','data')),
-    // "O que foi feito no local" — busca parcial garante match
+    carimbo:String(col(r,'Carimbo de data/hora','Timestamp','carimbo')||''),
+    nome:String(col(r,'Nome','nome','name')||'').trim(),
+    empresa:String(col(r,'Equipe / Empresa','Equipe/Empresa','Empresa','Equipe','equipe')||'').trim(),
+    dataISO:normDate(col(r,'Data do servico','Data do servico','Data do servi','Data','data')),
     situacao:String(col(r,'O que foi feito no local','O que foi feit','Situacao','situacao','feito','o que foi')||'').trim(),
-    // "Por que está pedindo almoço" com acentos — normalização resolve
     objetivo:String(col(r,'Por que esta pedindo almoco','Por que esta p','Por que','objetivo','por que')||'').trim(),
-    // "Valor do almoço (R$)" com acento
     valorRaw:col(r,'Valor do almoco (R$)','Valor do almoc','Valor do almo','Valor','valor')||0,
     solicito:String(col(r,'Solicito.','Solicito','solicito')||'').trim(),
   })).filter(r=>r.nome&&r.nome.length>1);
@@ -493,7 +784,6 @@ function chipFilter(id){
 }
 function toggleFilter(){const el=document.getElementById('filterCollapse');const open=el.classList.contains('open');el.classList.toggle('open',!open);el.classList.toggle('closed',open);if(!open){['hoje','semana','mes','todos'].forEach(c=>document.getElementById('chip-'+c).classList.remove('active'));document.getElementById('chip-custom').classList.add('active');activeChip='custom';}}
 function applyCustomFilter(){applyFilter(document.getElementById('dateFrom').value,document.getElementById('dateTo').value);}
-
 function applyFilter(from,to){
   let rows=allRows.filter(r=>r.nome);
   if(from||to)rows=rows.filter(r=>{const k=isoToKey(r.dataISO);return(!from||k>=from)&&(!to||k<=to);});
@@ -504,7 +794,6 @@ function applyFilter(from,to){
   document.getElementById('subtitleMobile').textContent=label;
   grupos=group(rows);renderStats(rows);renderCards();
 }
-
 function group(rows){
   const map={};
   rows.forEach(r=>{
@@ -546,20 +835,17 @@ function buildCard(g,i){
   return el;
 }
 
-// Prestacao
+// Prestação
 function buildDD(){renderDD([...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort());}
 function renderDD(names){
   const dd=document.getElementById('nameDD');
   dd.innerHTML=names.map(n=>'<div class="name-opt" data-name="'+n.replace(/"/g,'&quot;')+'">'+n+'</div>').join('');
-  dd.querySelectorAll('.name-opt').forEach(el=>{
-    el.addEventListener('click',()=>pickName(el.getAttribute('data-name')));
-  });
+  dd.querySelectorAll('.name-opt').forEach(el=>{el.addEventListener('click',()=>pickName(el.getAttribute('data-name')));});
 }
 function onNameInput(){const q=document.getElementById('pcName').value.toLowerCase();renderDD([...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort().filter(n=>n.toLowerCase().includes(q)));document.getElementById('nameDD').classList.add('open');}
 function openDD(){buildDD();document.getElementById('nameDD').classList.add('open');}
 function pickName(n){document.getElementById('pcName').value=n;document.getElementById('nameDD').classList.remove('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('nameDD').classList.remove('open');});
-
 function loadPC(){
   const nome=document.getElementById('pcName').value.trim();if(!nome){setPcErr('Digite ou selecione seu nome.');return;}clearPcErr();
   const from=document.getElementById('pcFrom').value,to=document.getElementById('pcTo').value;
@@ -608,31 +894,10 @@ function handleDrop(e,p){e.preventDefault();const pr=JSON.parse(decodeURICompone
 function handleFile(input,p){const pr=JSON.parse(decodeURIComponent(p));if(input.files[0])processFile(input.files[0],pr);}
 function resizeImage(file,maxW,maxH,quality){
   return new Promise((resolve)=>{
-    if(!file.type.startsWith('image/')){
-      const r=new FileReader();
-      r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});
-      r.readAsDataURL(file);return;
-    }
-    const url=URL.createObjectURL(file);
-    const img=new Image();
-    img.onload=()=>{
-      URL.revokeObjectURL(url);
-      let w=img.width,h=img.height;
-      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
-      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const dataUrl=canvas.toDataURL('image/jpeg',quality);
-      canvas.width=1;canvas.height=1; // libera memória do canvas
-      resolve({base64:dataUrl.split(',')[1],mimeType:'image/jpeg',fileName:file.name.replace(/\.[^.]+$/,'.jpg')});
-    };
-    img.onerror=()=>{
-      URL.revokeObjectURL(url);
-      const r=new FileReader();
-      r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});
-      r.readAsDataURL(file);
-    };
+    if(!file.type.startsWith('image/')){const r=new FileReader();r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});r.readAsDataURL(file);return;}
+    const url=URL.createObjectURL(file);const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);let w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const dataUrl=canvas.toDataURL('image/jpeg',quality);canvas.width=1;canvas.height=1;resolve({base64:dataUrl.split(',')[1],mimeType:'image/jpeg',fileName:file.name.replace(/\.[^.]+$/,'.jpg')});};
+    img.onerror=()=>{URL.revokeObjectURL(url);const r=new FileReader();r.onload=ev=>resolve({base64:ev.target.result.split(',')[1],mimeType:file.type,fileName:file.name});r.readAsDataURL(file);};
     img.src=url;
   });
 }
@@ -640,10 +905,8 @@ async function processFile(file,p){
   const area=document.getElementById('comp_'+p.uid);if(!area)return;
   area.innerHTML='<div class="comp-row"><span class="comp-icon">&#x1F4C4;</span><div class="comp-info"><div class="comp-name">'+file.name+'</div><div style="font-size:.73rem;color:var(--muted)">'+(file.size/1024).toFixed(1)+' KB — processando...</div></div><span class="comp-uploading"><span class="spin-sm"></span>Processando...</span></div>';
   let base64,mimeType,fileName;
-  try{
-    const result=await resizeImage(file,1600,1600,0.82);
-    base64=result.base64;mimeType=result.mimeType;fileName=result.fileName;
-  }catch(e){showToast('Erro ao processar imagem: '+e.message);return;}
+  try{const result=await resizeImage(file,1600,1600,0.82);base64=result.base64;mimeType=result.mimeType;fileName=result.fileName;}
+  catch(e){showToast('Erro ao processar imagem: '+e.message);return;}
   area.innerHTML='<div class="comp-row"><span class="comp-icon">&#x1F4C4;</span><div class="comp-info"><div class="comp-name">'+fileName+'</div><div style="font-size:.73rem;color:var(--muted)">Enviando...</div></div><span class="comp-uploading"><span class="spin-sm"></span>Enviando...</span></div>';
   let fileUrl='',fileId='';
   try{
@@ -657,9 +920,11 @@ async function processFile(file,p){
   area.innerHTML=buildCompView(comps[p.ck],p.ck,p.uid);
   const card=area.closest('.pc-card');
   if(card){card.classList.remove('status-pending','status-local','status-drive');card.classList.add('status-'+(fileUrl?'drive':'local'));const b=card.querySelector('.pc-card-head .status-badge');if(b)b.outerHTML=statusBadgeHTML(fileUrl?'drive':'local');}
-  refreshPCStats();showToast(fileUrl?'Salvo no Google Drive!':'Salvo localmente!');
+  refreshPCStats();
+  if(adminUnlocked)renderAdminTable();
+  showToast(fileUrl?'Salvo no Google Drive!':'Salvo localmente!');
 }
-function removeComp(ck,uid){delete comps[ck];saveComps();loadPC();showToast('Comprovante removido');}
+function removeComp(ck,uid){delete comps[ck];saveComps();loadPC();if(adminUnlocked)renderAdminTable();showToast('Comprovante removido');}
 function refreshPCStats(){
   const nome=document.getElementById('pcName').value.trim();if(!nome)return;
   const rows=allRows.filter(r=>r.nome.toLowerCase()===nome.toLowerCase());
@@ -669,6 +934,7 @@ function refreshPCStats(){
 }
 function clearPC(){document.getElementById('pcName').value='';document.getElementById('pcFrom').value='';document.getElementById('pcTo').value='';setPcArea('<div class="empty"><div class="empty-icon">&#x1F9FE;</div><strong>Nenhum colaborador selecionado</strong>Digite seu nome acima para ver os registros.</div>');document.getElementById('pcStats').style.display='none';clearPcErr();}
 
+// WA & Export
 function buildWaText(g){
   const n=g.colaboradores.length,unit=n>0?g.totalValor/n:0;
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
@@ -689,7 +955,6 @@ function openWA(idx){waText=buildWaText(grupos[idx]);document.getElementById('wa
 function waAll(){waText=buildWaAllText();document.getElementById('waPhone').value=localStorage.getItem('waPhone')||'';document.getElementById('sheetWA').classList.add('open');setTimeout(()=>document.getElementById('waPhone').focus(),100);}
 function closeWA(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('sheetWA').classList.remove('open');}
 function confirmWA(){const raw=document.getElementById('waPhone').value.replace(/\D/g,'');if(raw)localStorage.setItem('waPhone',raw);const phone=raw?'55'+raw:'';window.open((phone?'https://wa.me/'+phone:'https://wa.me')+'?text='+encodeURIComponent(waText),'_blank');document.getElementById('sheetWA').classList.remove('open');showToast('WhatsApp aberto!');}
-
 async function copyText(idx){
   const t=buildWaText(grupos[idx]);
   try{await navigator.clipboard.writeText(t);}
@@ -714,7 +979,7 @@ async function exportCard(idx){const area=document.getElementById('renderArea');
 async function exportAll(){for(let i=0;i<grupos.length;i++){await exportCard(i);await new Promise(r=>setTimeout(r,350));}}
 function dl(c,n){const a=document.createElement('a');a.download=n;a.href=c.toDataURL('image/png');a.click();}
 
-// ── ERRO DETALHADO COM DIAGNOSTICO ───────────────────────────
+// Error
 function showErr(m){
   const lines=m.split('. ');
   const main=lines[0]+(lines.length>1?'.':'');
@@ -769,12 +1034,24 @@ async function runDiag(){
   }catch(e){add('Erro de rede: '+e.message,false);}
 }
 
+// Helpers
 function showToast(msg){const t=document.getElementById('snackbar');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function setMain(h){document.getElementById('mainArea').innerHTML=h;}
 function setPcArea(h){document.getElementById('pcArea').innerHTML=h;}
 function clearErr(){document.getElementById('errArea').innerHTML='';}
 function setPcErr(m){document.getElementById('pcErr').innerHTML='<div class="error-card">'+m+'</div>';}
 function clearPcErr(){document.getElementById('pcErr').innerHTML='';}
+function isoToKey(s){const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[1]+'-'+m[2]+'-'+m[3]:'';}
+function isoToDisp(s){const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:'';}
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function todayDisp(){const d=new Date();return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}
+function weekStart(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function monthStart(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-01';}
+function fmtHora(s){const d=new Date(s||'');if(isNaN(d))return'';return p2(d.getHours())+':'+p2(d.getMinutes());}
+function p2(n){return String(n).padStart(2,'0');}
+function num(v){if(typeof v==='number')return v;return parseFloat(String(v).replace(/[^\d,\.]/g,'').replace(',','.'))||0;}
+function fmt(n){return 'R$ '+n.toFixed(2).replace('.',',');}
+function fmtS(n){return 'R$'+n.toFixed(0);}
 
 document.getElementById('waPhone').addEventListener('keydown',e=>{if(e.key==='Enter')confirmWA();if(e.key==='Escape')closeWA();});
 loadData();
