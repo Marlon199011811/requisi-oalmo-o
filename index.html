@@ -23,6 +23,7 @@
   --indigo:#818cf8;--indigo-dim:rgba(129,140,248,0.12);--indigo-border:rgba(129,140,248,0.25);
   --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.12);--amber-border:rgba(251,191,36,0.25);
   --red:#f87171;--red-dim:rgba(248,113,113,0.12);--red-border:rgba(248,113,113,0.25);
+  --email:#f472b6;--email-dim:rgba(244,114,182,0.12);--email-border:rgba(244,114,182,0.25);
   --text:#eef0f8;--text2:#a8afc8;--muted:#606480;
   --font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
   --bar-h:60px;--nav-h:64px;
@@ -37,6 +38,7 @@
   --indigo:#4f46e5;--indigo-dim:rgba(79,70,229,0.08);--indigo-border:rgba(79,70,229,0.25);
   --amber:#d97706;--amber-dim:rgba(217,119,6,0.08);--amber-border:rgba(217,119,6,0.25);
   --red:#dc2626;--red-dim:rgba(220,38,38,0.08);--red-border:rgba(220,38,38,0.25);
+  --email:#db2777;--email-dim:rgba(219,39,119,0.08);--email-border:rgba(219,39,119,0.25);
   --text:#111827;--text2:#374151;--muted:#9ca3af;
 }
 html{height:100%;overscroll-behavior:none;}
@@ -87,7 +89,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .stat-card .val{font-size:1.35rem;font-weight:700;color:var(--accent);font-family:var(--mono);letter-spacing:-.03em;line-height:1;margin-bottom:4px;}
 .stat-card .val.amber{color:var(--amber);}
 .stat-card .val.red{color:var(--red);}
-.stat-card .lbl{font-size:.64rem;color:var(--muted);font-weight:500;}
 .action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
 .btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 16px;border-radius:12px;font-size:.85rem;font-weight:600;font-family:var(--font);cursor:pointer;border:none;transition:opacity .15s,transform .1s;white-space:nowrap;min-height:48px;position:relative;overflow:hidden;}
 .btn:active{transform:scale(.97);opacity:.85;}
@@ -95,7 +96,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 [data-theme="light"] .btn-primary{color:#fff;}
 .btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border-md);}
 .btn-wa{background:var(--wa-dim);color:var(--wa);border:1px solid var(--wa-border);}
-.btn-img{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
+.btn-email{background:var(--email-dim);color:var(--email);border:1px solid var(--email-border);}
 .btn-copy{background:var(--indigo-dim);color:var(--indigo);border:1px solid rgba(129,140,248,.25);}
 .btn-excel{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.3);}
 .btn-sm{padding:8px 13px;font-size:.78rem;min-height:36px;border-radius:9px;}
@@ -113,8 +114,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .value-box{background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:10px;padding:10px 12px;}
 .value-box .vb-lbl{font-size:.63rem;color:var(--accent);opacity:.75;margin-bottom:2px;}
 .value-box .vb-val{font-size:1rem;font-weight:700;color:var(--accent);font-family:var(--mono);}
+/* empresa breakdown box */
+.empresa-breakdown{background:var(--surface2);border:1px solid var(--border-md);border-radius:10px;padding:10px 12px;margin-top:4px;}
+.empresa-breakdown .eb-title{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;}
+.empresa-breakdown .eb-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);}
+.empresa-breakdown .eb-row:last-child{border-bottom:none;}
+.empresa-breakdown .eb-name{font-size:.8rem;font-weight:500;color:var(--text2);}
+.empresa-breakdown .eb-count{font-size:.7rem;color:var(--muted);margin-left:4px;}
+.empresa-breakdown .eb-val{font-size:.82rem;font-weight:700;color:var(--accent);font-family:var(--mono);}
 .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .colab-lbl{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+/* empresa group header inside colab list */
+.empresa-group-hdr{font-size:.67rem;font-weight:600;color:var(--indigo);text-transform:uppercase;letter-spacing:.09em;padding:4px 0 5px;margin-top:6px;}
+.empresa-group-hdr:first-child{margin-top:0;}
 .colab-list{display:flex;flex-direction:column;gap:6px;}
 .colab-chip{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;gap:8px;}
 .colab-name{font-size:.88rem;font-weight:500;}
@@ -542,12 +554,10 @@ function getAdminFilteredRows(){
   if(empresa) rows=rows.filter(r=>r.empresa===empresa);
   if(status) rows=rows.filter(r=>compStatus(r)===status);
 
-  // Period filter (select overrides date inputs if not "todos")
   if(periodo==='hoje') rows=rows.filter(r=>isoToKey(r.dataISO)===tk);
   else if(periodo==='semana') rows=rows.filter(r=>isoToKey(r.dataISO)>=weekStart());
   else if(periodo==='mes') rows=rows.filter(r=>isoToKey(r.dataISO)>=monthStart());
   else {
-    // custom date range
     if(from||to) rows=rows.filter(r=>{const k=isoToKey(r.dataISO);return(!from||k>=from)&&(!to||k<=to);});
   }
 
@@ -558,7 +568,6 @@ function renderAdminTable(){
   if(!adminUnlocked)return;
   const rows=getAdminFilteredRows();
 
-  // Update stats
   const driveN=rows.filter(r=>compStatus(r)==='drive').length;
   const localN=rows.filter(r=>compStatus(r)==='local').length;
   const pendN=rows.filter(r=>compStatus(r)==='pending').length;
@@ -573,7 +582,6 @@ function renderAdminTable(){
     return;
   }
 
-  // Sort
   const sorted=[...rows].sort((a,b)=>{
     let va='',vb='';
     if(admSortCol==='nome'){va=a.nome;vb=b.nome;}
@@ -588,7 +596,6 @@ function renderAdminTable(){
     if(admSortCol!==col)return'<span style="opacity:.3">&#x21C5;</span>';
     return admSortDir===1?'<span>&#x2B07;</span>':'<span>&#x2B06;</span>';
   }
-  function setSort(col){if(admSortCol===col)admSortDir*=-1;else{admSortCol=col;admSortDir=1;}renderAdminTable();}
 
   const statusLabel={drive:'✅ Drive',local:'💾 Local',pending:'⏳ Pendente'};
   const statusClass={drive:'drive',local:'local',pending:'pending'};
@@ -649,8 +656,6 @@ function exportAdminExcel(){
   }));
 
   const ws=XLSX.utils.json_to_sheet(data);
-
-  // Column widths
   ws['!cols']=[
     {wch:28},{wch:20},{wch:12},{wch:36},{wch:36},{wch:20},
     {wch:12},{wch:14},{wch:28},{wch:36},{wch:20}
@@ -659,7 +664,6 @@ function exportAdminExcel(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Comprovantes');
 
-  // Summary sheet
   const total=rows.length;
   const drive=rows.filter(r=>compStatus(r)==='drive').length;
   const local=rows.filter(r=>compStatus(r)==='local').length;
@@ -727,7 +731,6 @@ async function loadData(){
       saveComps();
     }
     chipFilter(activeChip);
-    // Update admin table if open
     if(adminUnlocked){populateAdminEmpresaFilter();renderAdminTable();}
   }catch(e){
     showErr(e.message);
@@ -794,6 +797,7 @@ function applyFilter(from,to){
   document.getElementById('subtitleMobile').textContent=label;
   grupos=group(rows);renderStats(rows);renderCards();
 }
+
 function group(rows){
   const map={};
   rows.forEach(r=>{
@@ -805,18 +809,77 @@ function group(rows){
   });
   return Object.values(map).sort((a,b)=>a.data.localeCompare(b.data));
 }
+
+// ── HELPER: group colaboradores by empresa, sorted alphabetically ──
+function groupByEmpresa(colaboradores){
+  const map={};
+  colaboradores.forEach(c=>{
+    const e=c.empresa||'(Sem empresa)';
+    if(!map[e])map[e]=[];
+    map[e].push(c.nome);
+  });
+  // Sort empresa names alphabetically
+  const sorted=Object.keys(map).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  return sorted.map(e=>({empresa:e,nomes:map[e].sort((a,b)=>a.localeCompare(b,'pt-BR'))}));
+}
+
+// ── HELPER: compute total per empresa for a grupo ──
+function totalPorEmpresa(grupo){
+  // We need the original rows to know each person's individual valor
+  // Since grupo.colaboradores has nome+empresa but not individual valor,
+  // we reconstruct from allRows filtered by situacao+objetivo+data
+  const dataKey=grupo.data; // dd/mm/yyyy
+  const dataISO=dataKey.split('/').reverse().join('-');
+  const sit=grupo.situacao.toLowerCase().replace(/\s+/g,' ').trim();
+  const obj=grupo.objetivo.toLowerCase().trim();
+
+  const matchingRows=allRows.filter(r=>{
+    return isoToKey(r.dataISO)===dataISO
+      && r.situacao.toLowerCase().replace(/\s+/g,' ').trim()===sit
+      && r.objetivo.toLowerCase().trim()===obj;
+  });
+
+  const map={};
+  matchingRows.forEach(r=>{
+    const e=r.empresa||'(Sem empresa)';
+    if(!map[e])map[e]={valor:0,count:0};
+    map[e].valor+=num(r.valorRaw);
+    map[e].count++;
+  });
+
+  return Object.keys(map).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(e=>({empresa:e,...map[e]}));
+}
+
 function renderStats(rows){document.getElementById('sTotal').textContent=rows.length;document.getElementById('sGrupos').textContent=grupos.length;document.getElementById('sValor').textContent=fmtS(rows.reduce((s,r)=>s+num(r.valorRaw),0));document.getElementById('statsArea').style.display=rows.length?'':'none';}
+
 function renderCards(){
   if(!grupos.length){setMain('<div class="empty"><div class="empty-icon">\uD83D\uDCAD</div><strong>Sem registros</strong>Tente outro periodo.</div>');return;}
   const wrap=document.createElement('div');wrap.className='cards-stack';
   grupos.forEach((g,i)=>wrap.appendChild(buildCard(g,i)));
   setMain('');document.getElementById('mainArea').appendChild(wrap);
 }
+
 function buildCard(g,i){
   const n=g.colaboradores.length,unit=n>0?g.totalValor/n:0;
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'Entre '+hMin+' e '+hMax+' \u00b7 '+g.data:hMin?'Registrado \u00e0s '+hMin+' \u00b7 '+g.data:g.data;
+
+  // ── Per-empresa breakdown ──
+  const empresaData=totalPorEmpresa(g);
+  const empresaBreakdownHTML=empresaData.length>1
+    ? '<div class="empresa-breakdown"><div class="eb-title">Total por empresa</div>'
+      + empresaData.map(e=>'<div class="eb-row"><span class="eb-name">'+e.empresa+'<span class="eb-count">('+e.count+')</span></span><span class="eb-val">'+fmt(e.valor)+'</span></div>').join('')
+      +'</div>'
+    : '';
+
+  // ── Collaborators grouped by empresa, sorted alphabetically ──
+  const gruposEmpresa=groupByEmpresa(g.colaboradores);
+  const colabHTML=gruposEmpresa.map(ge=>
+    '<div class="empresa-group-hdr">'+ge.empresa+'</div>'
+    + ge.nomes.map(nome=>'<div class="colab-chip"><span class="colab-name">'+nome+'</span></div>').join('')
+  ).join('');
+
   const el=document.createElement('div');el.className='req-card';
   el.innerHTML='<div class="req-card-head"><span class="req-card-title">Solicitacao de Pagamento</span><span class="req-card-date">'+g.data+'</span></div>'
     +'<div class="req-card-body">'
@@ -825,13 +888,14 @@ function buildCard(g,i){
     +'<div class="info-block"><div class="info-label">Solicito</div><div class="info-val">'+g.solicito+'</div></div>'
     +'<div class="values-row"><div class="value-box"><div class="vb-lbl">Valor unitario</div><div class="vb-val">'+fmt(unit)+'</div></div>'
     +'<div class="value-box"><div class="vb-lbl">Total ('+n+' colab.)</div><div class="vb-val">'+fmt(g.totalValor)+'</div></div></div>'
+    + empresaBreakdownHTML
     +'<div class="divider"></div><div class="colab-lbl">Colaboradores</div>'
-    +'<div class="colab-list">'+g.colaboradores.map(c=>'<div class="colab-chip"><span class="colab-name">'+c.nome+'</span><span class="colab-emp">'+c.empresa+'</span></div>').join('')+'</div>'
+    +'<div class="colab-list">'+colabHTML+'</div>'
     +'<div class="card-meta">'+meta+'</div></div>'
     +'<div class="card-actions">'
     +'<button class="btn btn-copy btn-sm" onclick="copyText('+i+')">Copiar</button>'
     +'<button class="btn btn-wa btn-sm" onclick="openWA('+i+')">WhatsApp</button>'
-    +'<button class="btn btn-img btn-sm" onclick="exportCard('+i+')">Imagem</button></div>';
+    +'<button class="btn btn-email btn-sm" onclick="emailCard('+i+')">&#x2709; E-mail</button></div>';
   return el;
 }
 
@@ -940,6 +1004,19 @@ function buildWaText(g){
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'\uD83D\uDD50 Registros entre '+hMin+' e '+hMax:hMin?'\uD83D\uDD50 Registrado \u00e0s '+hMin:'';
+
+  // Per-empresa breakdown for WhatsApp
+  const empresaData=totalPorEmpresa(g);
+  const empresaLines=empresaData.length>1
+    ? '\n\uD83C\uDFE2 Total por empresa:\n'+empresaData.map(e=>'   \u2022 '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
+    : '';
+
+  // Collaborators grouped by empresa for WhatsApp
+  const gruposEmpresa=groupByEmpresa(g.colaboradores);
+  const colabLines=gruposEmpresa.map(ge=>
+    '  ['+ge.empresa+']\n'+ge.nomes.map(nm=>'   \u2022 '+nm).join('\n')
+  ).join('\n');
+
   return '\uD83D\uDCDD *Solicita\u00e7\u00e3o de Pagamento*'
     +'\n\uD83D\uDCCD Situa\u00e7\u00e3o: '+g.situacao
     +'\n\uD83C\uDFAF Objetivo: '+g.objetivo
@@ -947,7 +1024,8 @@ function buildWaText(g){
     +'\n\uD83D\uDCC5 Data: '+g.data
     +'\n\uD83D\uDCB0 Valor unit.: '+fmt(unit)+' cada'
     +'\n\uD83D\uDCB5 Total: '+fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')'
-    +'\n\uD83D\uDC77 Colaboradores:\n'+g.colaboradores.map(c=>'   \u2022 '+c.nome+' \u2014 '+c.empresa).join('\n')
+    + empresaLines
+    +'\n\uD83D\uDC77 Colaboradores:\n'+colabLines
     +(meta?'\n'+meta:'');
 }
 function buildWaAllText(){return grupos.map((g,i)=>(i>0?'\n---\n\n':'')+buildWaText(g)).join('');}
@@ -961,23 +1039,60 @@ async function copyText(idx){
   catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);}
   showToast('Texto copiado!');
 }
-function buildExportHTML(g){
+
+// ── EMAIL SHARE (replaces exportCard) ──────────────────────────
+function buildEmailText(g){
   const n=g.colaboradores.length,unit=n>0?g.totalValor/n:0;
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'Registros entre '+hMin+' e '+hMax+' - '+g.data:hMin?'Registrado as '+hMin+' - '+g.data:g.data;
-  const row=(ic,lb,vl,gr=false)=>'<div style="display:flex;gap:7px;margin-bottom:9px"><span style="font-size:13px;width:20px">'+ic+'</span><span style="font-size:11px;color:#7a8099;min-width:82px">'+lb+'</span><span style="font-size:13px;font-weight:500;color:'+(gr?'#00e5a0':'#f0f2f8')+'">'+vl+'</span></div>';
-  return '<div style="background:#1e2333;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:24px;width:600px;font-family:sans-serif"><div style="font-size:15px;font-weight:600;color:#f0f2f8;padding-bottom:13px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08)">Solicitacao de Pagamento</div>'
-    +row('','Situacao:',g.situacao)+row('','Objetivo:',g.objetivo)+row('','Solicito:',g.solicito)+row('','Data:',g.data)
-    +'<div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0"></div>'
-    +row('','Valor unit.:',fmt(unit)+' cada',true)+row('','Total:',fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')',true)
-    +'<div style="border-top:1px solid rgba(255,255,255,0.07);margin:10px 0"></div>'
-    +g.colaboradores.map(c=>'<div style="display:flex;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:7px 12px;margin-bottom:5px"><span style="font-size:13px;font-weight:500;color:#f0f2f8">'+c.nome+'</span><span style="font-size:11px;color:#7a8099">'+c.empresa+'</span></div>').join('')
-    +'<div style="font-size:11px;color:#7a8099;text-align:right;margin-top:12px;font-family:monospace">'+meta+'</div></div>';
+
+  // Per-empresa breakdown
+  const empresaData=totalPorEmpresa(g);
+  const empresaLines=empresaData.length>1
+    ? '\n\nTotal por empresa:\n'+empresaData.map(e=>'  - '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
+    : '';
+
+  // Collaborators grouped by empresa
+  const gruposEmpresa=groupByEmpresa(g.colaboradores);
+  const colabLines=gruposEmpresa.map(ge=>
+    '  ['+ge.empresa+']\n'+ge.nomes.map(nm=>'    - '+nm).join('\n')
+  ).join('\n');
+
+  const subject='Solicitacao de Pagamento - '+g.data;
+  const body='Solicitacao de Pagamento'
+    +'\n\nSituacao: '+g.situacao
+    +'\nObjetivo: '+g.objetivo
+    +'\nSolicito: '+g.solicito
+    +'\nData: '+g.data
+    +'\n\nValor unitario: '+fmt(unit)+' cada'
+    +'\nTotal: '+fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')'
+    + empresaLines
+    +'\n\nColaboradores:\n'+colabLines
+    +'\n\n'+meta;
+
+  return{subject,body};
 }
-async function exportCard(idx){const area=document.getElementById('renderArea');area.innerHTML=buildExportHTML(grupos[idx]);await new Promise(r=>setTimeout(r,150));const canvas=await html2canvas(area.firstElementChild,{backgroundColor:'#1e2333',scale:2});dl(canvas,'solicitacao_'+(idx+1)+'.png');area.innerHTML='';}
-async function exportAll(){for(let i=0;i<grupos.length;i++){await exportCard(i);await new Promise(r=>setTimeout(r,350));}}
-function dl(c,n){const a=document.createElement('a');a.download=n;a.href=c.toDataURL('image/png');a.click();}
+
+function emailCard(idx){
+  const g=grupos[idx];
+  const {subject,body}=buildEmailText(g);
+  const mailtoLink='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  window.open(mailtoLink,'_blank');
+  showToast('Cliente de e-mail aberto!');
+}
+
+async function exportAll(){
+  // Export all as email (all grupos combined)
+  const lines=grupos.map((g,i)=>{
+    const {subject,body}=buildEmailText(g);
+    return (i>0?'\n\n---\n\n':'')+body;
+  }).join('');
+  const subject='Solicitacoes de Pagamento - '+grupos.map(g=>g.data).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+  const mailtoLink='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(lines);
+  window.open(mailtoLink,'_blank');
+  showToast('Cliente de e-mail aberto!');
+}
 
 // Error
 function showErr(m){
