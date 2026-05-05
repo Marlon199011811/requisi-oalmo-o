@@ -114,7 +114,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .value-box{background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:10px;padding:10px 12px;}
 .value-box .vb-lbl{font-size:.63rem;color:var(--accent);opacity:.75;margin-bottom:2px;}
 .value-box .vb-val{font-size:1rem;font-weight:700;color:var(--accent);font-family:var(--mono);}
-/* empresa breakdown box */
 .empresa-breakdown{background:var(--surface2);border:1px solid var(--border-md);border-radius:10px;padding:10px 12px;margin-top:4px;}
 .empresa-breakdown .eb-title{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;}
 .empresa-breakdown .eb-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);}
@@ -124,7 +123,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .empresa-breakdown .eb-val{font-size:.82rem;font-weight:700;color:var(--accent);font-family:var(--mono);}
 .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .colab-lbl{font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
-/* empresa group header inside colab list */
 .empresa-group-hdr{font-size:.67rem;font-weight:600;color:var(--indigo);text-transform:uppercase;letter-spacing:.09em;padding:4px 0 5px;margin-top:6px;}
 .empresa-group-hdr:first-child{margin-top:0;}
 .colab-list{display:flex;flex-direction:column;gap:6px;}
@@ -774,7 +772,7 @@ function parse(data){
   })).filter(r=>r.nome&&r.nome.length>1);
 }
 
-// Chips
+// ── CHIPS ─────────────────────────────────────────────────────
 function chipFilter(id){
   activeChip=id;
   ['hoje','semana','mes','todos','custom'].forEach(c=>document.getElementById('chip-'+c).classList.toggle('active',c===id));
@@ -798,19 +796,87 @@ function applyFilter(from,to){
   grupos=group(rows);renderStats(rows);renderCards();
 }
 
-function group(rows){
-  const map={};
-  rows.forEach(r=>{
-    const k=r.situacao.toLowerCase().replace(/\s+/g,' ').trim()+'||'+r.objetivo.toLowerCase().trim()+'||'+isoToKey(r.dataISO);
-    if(!map[k])map[k]={situacao:r.situacao||'\u2014',objetivo:r.objetivo||'\u2014',data:isoToDisp(r.dataISO),solicito:r.solicito,colaboradores:[],carimbos:[],totalValor:0};
-    map[k].colaboradores.push({nome:r.nome,empresa:r.empresa});
-    map[k].carimbos.push(r.carimbo);
-    map[k].totalValor+=num(r.valorRaw);
-  });
-  return Object.values(map).sort((a,b)=>a.data.localeCompare(b.data));
+// ── AGRUPAMENTO COM SIMILARIDADE FUZZY ────────────────────────
+// Remove acentos, pontuação e normaliza espaços para comparação
+function normalizeForKey(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 
-// ── HELPER: group colaboradores by empresa, sorted alphabetically ──
+// Similaridade Jaccard por palavras (ignora palavras <= 2 chars)
+// Retorna valor entre 0.0 (nenhuma palavra em comum) e 1.0 (textos idênticos)
+function wordSimilarity(a,b){
+  if(!a&&!b)return 1;
+  if(!a||!b)return 0;
+  const wa=new Set(a.split(' ').filter(w=>w.length>2));
+  const wb=new Set(b.split(' ').filter(w=>w.length>2));
+  if(!wa.size&&!wb.size)return 1;
+  if(!wa.size||!wb.size)return 0;
+  const intersection=[...wa].filter(w=>wb.has(w)).length;
+  const union=new Set([...wa,...wb]).size;
+  return union?intersection/union:0;
+}
+
+// THRESHOLD: percentual mínimo de palavras em comum para considerar mesmo pedido.
+// 0.50 = 50% das palavras iguais → mesmo grupo.
+// Aumente para 0.65 se quiser agrupamento mais restrito.
+// Diminua para 0.35 se quiser agrupamento mais permissivo.
+const GROUP_THRESHOLD=0.50;
+
+function group(rows){
+  const groups=[];
+
+  rows.forEach(r=>{
+    const dateKey =isoToKey(r.dataISO);
+    const normSit =normalizeForKey(r.situacao);
+    const normObj =normalizeForKey(r.objetivo);
+
+    // Procura grupo existente no mesmo dia com texto similar
+    let found=groups.find(g=>{
+      if(g.dateKey!==dateKey)return false;
+      // Ambos vazios no mesmo dia → mesmo grupo
+      if(!g.normSit&&!normSit&&!g.normObj&&!normObj)return true;
+      const simSit=wordSimilarity(normSit,g.normSit);
+      const simObj=wordSimilarity(normObj,g.normObj);
+      // Média das duas similaridades deve atingir o limiar
+      return(simSit+simObj)/2>=GROUP_THRESHOLD;
+    });
+
+    if(!found){
+      found={
+        dateKey,
+        normSit,
+        normObj,
+        situacao     :r.situacao,
+        objetivo     :r.objetivo,
+        data         :isoToDisp(r.dataISO),
+        solicito     :r.solicito,
+        colaboradores:[],
+        carimbos     :[],
+        totalValor   :0,
+        rows         :[]   // linhas originais (usado por totalPorEmpresa)
+      };
+      groups.push(found);
+    }
+
+    found.colaboradores.push({nome:r.nome,empresa:r.empresa});
+    found.carimbos.push(r.carimbo);
+    found.totalValor+=num(r.valorRaw);
+    found.rows.push(r);
+
+    // Mantém o texto mais completo (mais longo) como representante do grupo
+    if(r.situacao.length>found.situacao.length)found.situacao=r.situacao;
+    if(r.objetivo.length>found.objetivo.length)found.objetivo=r.objetivo;
+  });
+
+  return groups.sort((a,b)=>a.dateKey.localeCompare(b.dateKey));
+}
+
+// ── HELPER: colaboradores agrupados por empresa ───────────────
 function groupByEmpresa(colaboradores){
   const map={};
   colaboradores.forEach(c=>{
@@ -818,36 +884,23 @@ function groupByEmpresa(colaboradores){
     if(!map[e])map[e]=[];
     map[e].push(c.nome);
   });
-  // Sort empresa names alphabetically
   const sorted=Object.keys(map).sort((a,b)=>a.localeCompare(b,'pt-BR'));
   return sorted.map(e=>({empresa:e,nomes:map[e].sort((a,b)=>a.localeCompare(b,'pt-BR'))}));
 }
 
-// ── HELPER: compute total per empresa for a grupo ──
-function totalPorEmpresa(grupo){
-  // We need the original rows to know each person's individual valor
-  // Since grupo.colaboradores has nome+empresa but not individual valor,
-  // we reconstruct from allRows filtered by situacao+objetivo+data
-  const dataKey=grupo.data; // dd/mm/yyyy
-  const dataISO=dataKey.split('/').reverse().join('-');
-  const sit=grupo.situacao.toLowerCase().replace(/\s+/g,' ').trim();
-  const obj=grupo.objetivo.toLowerCase().trim();
-
-  const matchingRows=allRows.filter(r=>{
-    return isoToKey(r.dataISO)===dataISO
-      && r.situacao.toLowerCase().replace(/\s+/g,' ').trim()===sit
-      && r.objetivo.toLowerCase().trim()===obj;
-  });
-
+// ── HELPER: total por empresa — usa g.rows direto ─────────────
+function totalPorEmpresa(g){
+  const rows=g.rows||[];
   const map={};
-  matchingRows.forEach(r=>{
+  rows.forEach(r=>{
     const e=r.empresa||'(Sem empresa)';
     if(!map[e])map[e]={valor:0,count:0};
     map[e].valor+=num(r.valorRaw);
     map[e].count++;
   });
-
-  return Object.keys(map).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(e=>({empresa:e,...map[e]}));
+  return Object.keys(map)
+    .sort((a,b)=>a.localeCompare(b,'pt-BR'))
+    .map(e=>({empresa:e,...map[e]}));
 }
 
 function renderStats(rows){document.getElementById('sTotal').textContent=rows.length;document.getElementById('sGrupos').textContent=grupos.length;document.getElementById('sValor').textContent=fmtS(rows.reduce((s,r)=>s+num(r.valorRaw),0));document.getElementById('statsArea').style.display=rows.length?'':'none';}
@@ -865,19 +918,17 @@ function buildCard(g,i){
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'Entre '+hMin+' e '+hMax+' \u00b7 '+g.data:hMin?'Registrado \u00e0s '+hMin+' \u00b7 '+g.data:g.data;
 
-  // ── Per-empresa breakdown ──
   const empresaData=totalPorEmpresa(g);
   const empresaBreakdownHTML=empresaData.length>1
-    ? '<div class="empresa-breakdown"><div class="eb-title">Total por empresa</div>'
-      + empresaData.map(e=>'<div class="eb-row"><span class="eb-name">'+e.empresa+'<span class="eb-count">('+e.count+')</span></span><span class="eb-val">'+fmt(e.valor)+'</span></div>').join('')
+    ?'<div class="empresa-breakdown"><div class="eb-title">Total por empresa</div>'
+      +empresaData.map(e=>'<div class="eb-row"><span class="eb-name">'+e.empresa+'<span class="eb-count">('+e.count+')</span></span><span class="eb-val">'+fmt(e.valor)+'</span></div>').join('')
       +'</div>'
-    : '';
+    :'';
 
-  // ── Collaborators grouped by empresa, sorted alphabetically ──
   const gruposEmpresa=groupByEmpresa(g.colaboradores);
   const colabHTML=gruposEmpresa.map(ge=>
     '<div class="empresa-group-hdr">'+ge.empresa+'</div>'
-    + ge.nomes.map(nome=>'<div class="colab-chip"><span class="colab-name">'+nome+'</span></div>').join('')
+    +ge.nomes.map(nome=>'<div class="colab-chip"><span class="colab-name">'+nome+'</span></div>').join('')
   ).join('');
 
   const el=document.createElement('div');el.className='req-card';
@@ -888,7 +939,7 @@ function buildCard(g,i){
     +'<div class="info-block"><div class="info-label">Solicito</div><div class="info-val">'+g.solicito+'</div></div>'
     +'<div class="values-row"><div class="value-box"><div class="vb-lbl">Valor unitario</div><div class="vb-val">'+fmt(unit)+'</div></div>'
     +'<div class="value-box"><div class="vb-lbl">Total ('+n+' colab.)</div><div class="vb-val">'+fmt(g.totalValor)+'</div></div></div>'
-    + empresaBreakdownHTML
+    +empresaBreakdownHTML
     +'<div class="divider"></div><div class="colab-lbl">Colaboradores</div>'
     +'<div class="colab-list">'+colabHTML+'</div>'
     +'<div class="card-meta">'+meta+'</div></div>'
@@ -899,7 +950,7 @@ function buildCard(g,i){
   return el;
 }
 
-// Prestação
+// ── PRESTAÇÃO ─────────────────────────────────────────────────
 function buildDD(){renderDD([...new Set(allRows.map(r=>r.nome).filter(Boolean))].sort());}
 function renderDD(names){
   const dd=document.getElementById('nameDD');
@@ -998,20 +1049,18 @@ function refreshPCStats(){
 }
 function clearPC(){document.getElementById('pcName').value='';document.getElementById('pcFrom').value='';document.getElementById('pcTo').value='';setPcArea('<div class="empty"><div class="empty-icon">&#x1F9FE;</div><strong>Nenhum colaborador selecionado</strong>Digite seu nome acima para ver os registros.</div>');document.getElementById('pcStats').style.display='none';clearPcErr();}
 
-// WA & Export
+// ── WA & EXPORT ───────────────────────────────────────────────
 function buildWaText(g){
   const n=g.colaboradores.length,unit=n>0?g.totalValor/n:0;
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'\uD83D\uDD50 Registros entre '+hMin+' e '+hMax:hMin?'\uD83D\uDD50 Registrado \u00e0s '+hMin:'';
 
-  // Per-empresa breakdown for WhatsApp
   const empresaData=totalPorEmpresa(g);
   const empresaLines=empresaData.length>1
-    ? '\n\uD83C\uDFE2 Total por empresa:\n'+empresaData.map(e=>'   \u2022 '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
-    : '';
+    ?'\n\uD83C\uDFE2 Total por empresa:\n'+empresaData.map(e=>'   \u2022 '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
+    :'';
 
-  // Collaborators grouped by empresa for WhatsApp
   const gruposEmpresa=groupByEmpresa(g.colaboradores);
   const colabLines=gruposEmpresa.map(ge=>
     '  ['+ge.empresa+']\n'+ge.nomes.map(nm=>'   \u2022 '+nm).join('\n')
@@ -1024,7 +1073,7 @@ function buildWaText(g){
     +'\n\uD83D\uDCC5 Data: '+g.data
     +'\n\uD83D\uDCB0 Valor unit.: '+fmt(unit)+' cada'
     +'\n\uD83D\uDCB5 Total: '+fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')'
-    + empresaLines
+    +empresaLines
     +'\n\uD83D\uDC77 Colaboradores:\n'+colabLines
     +(meta?'\n'+meta:'');
 }
@@ -1040,20 +1089,17 @@ async function copyText(idx){
   showToast('Texto copiado!');
 }
 
-// ── EMAIL SHARE (replaces exportCard) ──────────────────────────
 function buildEmailText(g){
   const n=g.colaboradores.length,unit=n>0?g.totalValor/n:0;
   const horas=g.carimbos.map(fmtHora).filter(Boolean).sort();
   const hMin=horas[0]||'',hMax=horas[horas.length-1]||'';
   const meta=hMin&&hMax&&hMin!==hMax?'Registros entre '+hMin+' e '+hMax+' - '+g.data:hMin?'Registrado as '+hMin+' - '+g.data:g.data;
 
-  // Per-empresa breakdown
   const empresaData=totalPorEmpresa(g);
   const empresaLines=empresaData.length>1
-    ? '\n\nTotal por empresa:\n'+empresaData.map(e=>'  - '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
-    : '';
+    ?'\n\nTotal por empresa:\n'+empresaData.map(e=>'  - '+e.empresa+': '+fmt(e.valor)+' ('+e.count+' colab.)').join('\n')
+    :'';
 
-  // Collaborators grouped by empresa
   const gruposEmpresa=groupByEmpresa(g.colaboradores);
   const colabLines=gruposEmpresa.map(ge=>
     '  ['+ge.empresa+']\n'+ge.nomes.map(nm=>'    - '+nm).join('\n')
@@ -1067,7 +1113,7 @@ function buildEmailText(g){
     +'\nData: '+g.data
     +'\n\nValor unitario: '+fmt(unit)+' cada'
     +'\nTotal: '+fmt(g.totalValor)+' ('+n+' colaborador'+(n>1?'es':'')+')'
-    + empresaLines
+    +empresaLines
     +'\n\nColaboradores:\n'+colabLines
     +'\n\n'+meta;
 
@@ -1083,10 +1129,9 @@ function emailCard(idx){
 }
 
 async function exportAll(){
-  // Export all as email (all grupos combined)
   const lines=grupos.map((g,i)=>{
     const {subject,body}=buildEmailText(g);
-    return (i>0?'\n\n---\n\n':'')+body;
+    return(i>0?'\n\n---\n\n':'')+body;
   }).join('');
   const subject='Solicitacoes de Pagamento - '+grupos.map(g=>g.data).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
   const mailtoLink='mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(lines);
@@ -1094,7 +1139,7 @@ async function exportAll(){
   showToast('Cliente de e-mail aberto!');
 }
 
-// Error
+// ── ERRO / DIAGNÓSTICO ────────────────────────────────────────
 function showErr(m){
   const lines=m.split('. ');
   const main=lines[0]+(lines.length>1?'.':'');
@@ -1149,7 +1194,7 @@ async function runDiag(){
   }catch(e){add('Erro de rede: '+e.message,false);}
 }
 
-// Helpers
+// ── HELPERS ───────────────────────────────────────────────────
 function showToast(msg){const t=document.getElementById('snackbar');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function setMain(h){document.getElementById('mainArea').innerHTML=h;}
 function setPcArea(h){document.getElementById('pcArea').innerHTML=h;}
